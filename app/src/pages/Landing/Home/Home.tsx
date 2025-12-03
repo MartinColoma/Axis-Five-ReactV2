@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './Home.css';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import styles from './Home.module.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import Navbar from '../Navbar/navbar';
+import Navbar from '../Navigation/navbar';
+import Footer from '../Navigation/Footer';
 
 const Home: React.FC = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeAboutSlide, setActiveAboutSlide] = useState(0);
+  const location = useLocation();
 
   const heroSlides = [
     '/images/Home/H1.png',
     '/images/Home/H2.jpg',
     '/images/Home/H3.png'
   ];
+
+  // Handle navigation from other pages with scroll state
+  useEffect(() => {
+    if (location.state && (location.state as any).scrollTo) {
+      const sectionId = (location.state as any).scrollTo;
+      setTimeout(() => {
+        scrollToSection(sectionId);
+      }, 100);
+      // Clear the state after scrolling
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,7 +40,7 @@ const Home: React.FC = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/landing/contact-us`,
+        `${import.meta.env.VITE_API_LOCAL_SERVER}/api/landing/contact-us`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -79,53 +93,45 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="page-wrapper">
+    <div className={styles.pageWrapper}>
       <Navbar />
 
       {/* Hero Section */}
-      <section id="home" className="hero-section">
-        <div className="container">
-          <div className="hero-grid">
-            <div className="hero-content">
-              <h1 className="hero-title">
+      <section id="home" className={styles.heroSection}>
+        <div className={styles.container}>
+          <div className={styles.heroGrid}>
+            <div className={styles.heroContent}>
+              <h1 className={styles.heroTitle}>
                 Empowering Innovation,
                 <br />
                 Inspiring the Future.
               </h1>
-              <p className="hero-subtitle">Technology Aligned. Futures Defined.</p>
+              <p className={styles.heroSubtitle}>Technology Aligned. Futures Defined.</p>
 
               <button 
                 onClick={() => scrollToSection('services')} 
-                className="btn btn-primary btn-discover"
+                className={styles.ctaButton}
               >
                 Discover Our Services
               </button>
-
-              <div className="tech-stack">
-                <img src="/images/stack/mysql.jpg" alt="MySQL" className="tech-icon" />
-                <img src="/images/stack/express.jpg" alt="Express" className="tech-icon" />
-                <img src="/images/stack/react.jpg" alt="React" className="tech-icon" />
-                <img src="/images/stack/node.jpg" alt="Node.js" className="tech-icon" />
-                <img src="/images/stack/flask.jpg" alt="Flask" className="tech-icon" />
-              </div>
             </div>
 
-            <div className="hero-carousel">
-              <div className="carousel">
-                <div className="carousel-inner">
+            <div className={styles.heroCarousel}>
+              <div className={styles.carousel}>
+                <div className={styles.carouselInner}>
                   {heroSlides.map((slide, index) => (
                     <img
                       key={index}
                       src={slide}
                       alt={`Slide ${index + 1}`}
-                      className={`carousel-slide ${index === activeSlide ? 'active' : ''}`}
+                      className={`${styles.carouselSlide} ${index === activeSlide ? styles.active : ''}`}
                     />
                   ))}
                 </div>
-                <button className="carousel-btn carousel-prev" onClick={prevSlide}>
+                <button className={`${styles.carouselControl} ${styles.prev}`} onClick={prevSlide} aria-label="Previous slide">
                   <span>‹</span>
                 </button>
-                <button className="carousel-btn carousel-next" onClick={nextSlide}>
+                <button className={`${styles.carouselControl} ${styles.next}`} onClick={nextSlide} aria-label="Next slide">
                   <span>›</span>
                 </button>
               </div>
@@ -135,42 +141,42 @@ const Home: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="section testimonials-section">
-        <div className="container">
-          <h2 className="section-title">What Our Clients Say</h2>
-          <div className="testimonials-grid">
-            <div className="testimonial-card">
-              <div className="testimonial-header">
+      <section id="testimonials" className={styles.testimonialsSection}>
+        <div className={styles.container}>
+          <h2 className={styles.sectionTitle}>What Our Clients Say</h2>
+          <div className={styles.testimonialsGrid}>
+            <div className={styles.testimonialCard}>
+              <div className={styles.testimonialHeader}>
                 <img
                   src="/images/clients/ceo-techcorp.jpg"
                   alt="CEO TechCorp"
-                  className="testimonial-img"
+                  className={styles.testimonialAvatar}
                 />
-                <div>
-                  <h5 className="testimonial-name">Jane Smith</h5>
-                  <p className="testimonial-role">CEO, TechCorp</p>
+                <div className={styles.testimonialInfo}>
+                  <h3 className={styles.testimonialName}>Jane Smith</h3>
+                  <p className={styles.testimonialRole}>CEO, TechCorp</p>
                 </div>
               </div>
-              <p className="testimonial-text">
+              <p className={styles.testimonialText}>
                 "Axis Five completely transformed our workflow with their IoT solutions. Their ability to
                 integrate seamlessly into our existing system was impressive. The team is reliable,
                 responsive, and truly committed to delivering value."
               </p>
             </div>
 
-            <div className="testimonial-card">
-              <div className="testimonial-header">
+            <div className={styles.testimonialCard}>
+              <div className={styles.testimonialHeader}>
                 <img
                   src="/images/clients/cto-innovatex.jpg"
                   alt="CTO InnovateX"
-                  className="testimonial-img"
+                  className={styles.testimonialAvatar}
                 />
-                <div>
-                  <h5 className="testimonial-name">Michael Lee</h5>
-                  <p className="testimonial-role">CTO, InnovateX</p>
+                <div className={styles.testimonialInfo}>
+                  <h3 className={styles.testimonialName}>Michael Lee</h3>
+                  <p className={styles.testimonialRole}>CTO, InnovateX</p>
                 </div>
               </div>
-              <p className="testimonial-text">
+              <p className={styles.testimonialText}>
                 "Professional, innovative, and client-focused. Their IT services are top-notch and exceeded our
                 expectations. Axis Five delivered on time, with excellent communication throughout the project."
               </p>
@@ -180,37 +186,37 @@ const Home: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="section about-section">
-        <div className="container">
-          <div className="about-grid">
-            <div className="about-content">
-              <h2 className="section-title">About Us</h2>
-              <p className="about-text">
+      <section id="about" className={styles.aboutSection}>
+        <div className={styles.container}>
+          <div className={styles.aboutGrid}>
+            <div className={styles.aboutContent}>
+              <h2 className={styles.sectionTitle}>About Us</h2>
+              <p className={styles.aboutText}>
                 Axis Five Solutions was founded by five forward-thinking engineers with a shared vision: to align
                 technology with human progress. We combine deep technical expertise with bold innovation to create
                 solutions that power businesses and inspire the future.
               </p>
-              <Link to="/about" className="btn btn-primary">
+              <Link to="/about" className={styles.ctaButton}>
                 Know More
               </Link>
             </div>
 
-            <div className="about-carousel">
-              <div className="carousel">
-                <div className="carousel-inner">
+            <div className={styles.aboutCarousel}>
+              <div className={styles.carousel}>
+                <div className={styles.carouselInner}>
                   {heroSlides.map((slide, index) => (
                     <img
                       key={index}
                       src={slide}
                       alt={`About Slide ${index + 1}`}
-                      className={`carousel-slide ${index === activeAboutSlide ? 'active' : ''}`}
+                      className={`${styles.carouselSlide} ${index === activeAboutSlide ? styles.active : ''}`}
                     />
                   ))}
                 </div>
-                <button className="carousel-btn carousel-prev" onClick={prevAboutSlide}>
+                <button className={`${styles.carouselControl} ${styles.prev}`} onClick={prevAboutSlide} aria-label="Previous about slide">
                   <span>‹</span>
                 </button>
-                <button className="carousel-btn carousel-next" onClick={nextAboutSlide}>
+                <button className={`${styles.carouselControl} ${styles.next}`} onClick={nextAboutSlide} aria-label="Next about slide">
                   <span>›</span>
                 </button>
               </div>
@@ -220,38 +226,38 @@ const Home: React.FC = () => {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="section services-section">
-        <div className="container">
-          <h2 className="section-title">Our Services</h2>
-          <div className="services-grid">
-            <div className="service-card">
-              <i className="fas fa-microchip service-icon"></i>
-              <h5 className="service-title">IoT Solutions</h5>
-              <p className="service-text">
+      <section id="services" className={styles.servicesSection}>
+        <div className={styles.container}>
+          <h2 className={styles.sectionTitle}>Our Services</h2>
+          <div className={styles.servicesGrid}>
+            <div className={styles.serviceCard}>
+              <i className={`fas fa-microchip ${styles.serviceIcon}`}></i>
+              <h3 className={styles.serviceTitle}>IoT Solutions</h3>
+              <p className={styles.serviceDescription}>
                 Smart sensors, connected devices, and automation systems to bring your ideas to life.
               </p>
             </div>
 
-            <div className="service-card">
-              <i className="fas fa-code service-icon"></i>
-              <h5 className="service-title">IT Services</h5>
-              <p className="service-text">
+            <div className={styles.serviceCard}>
+              <i className={`fas fa-code ${styles.serviceIcon}`}></i>
+              <h3 className={styles.serviceTitle}>IT Services</h3>
+              <p className={styles.serviceDescription}>
                 Web applications, cloud systems, and IT consulting built for scalability and performance.
               </p>
             </div>
 
-            <div className="service-card">
-              <i className="fas fa-cloud service-icon"></i>
-              <h5 className="service-title">Cloud Integration</h5>
-              <p className="service-text">
+            <div className={styles.serviceCard}>
+              <i className={`fas fa-cloud ${styles.serviceIcon}`}></i>
+              <h3 className={styles.serviceTitle}>Cloud Integration</h3>
+              <p className={styles.serviceDescription}>
                 Seamlessly migrate and scale your operations with secure cloud infrastructure and 24/7 support.
               </p>
             </div>
 
-            <div className="service-card">
-              <i className="fas fa-shield-alt service-icon"></i>
-              <h5 className="service-title">Cybersecurity</h5>
-              <p className="service-text">
+            <div className={styles.serviceCard}>
+              <i className={`fas fa-shield-alt ${styles.serviceIcon}`}></i>
+              <h3 className={styles.serviceTitle}>Cybersecurity</h3>
+              <p className={styles.serviceDescription}>
                 Protect your digital assets with next-gen security solutions, risk assessments, and monitoring systems.
               </p>
             </div>
@@ -260,16 +266,16 @@ const Home: React.FC = () => {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="section products-section">
-        <div className="container">
-          <h2 className="section-title">Our Products</h2>
-          <div className="products-grid">
-            <div className="product-card">
-              <img src="/images/products/docusort/docusort.png" alt="DocuSort" className="product-img" />
-              <div className="product-body">
-                <h5 className="product-title">DocuSort</h5>
-                <p className="product-text">Automated machine that intelligently sorts documents.</p>
-                <ul className="product-features">
+      <section id="products" className={styles.productsSection}>
+        <div className={styles.container}>
+          <h2 className={styles.sectionTitle}>Our Products</h2>
+          <div className={styles.productsGrid}>
+            <div className={styles.productCard}>
+              <img src="/images/products/docusort/docusort.png" alt="DocuSort" className={styles.productImage} />
+              <div className={styles.productContent}>
+                <h3 className={styles.productTitle}>DocuSort</h3>
+                <p className={styles.productDescription}>Automated machine that intelligently sorts documents.</p>
+                <ul className={styles.productFeatures}>
                   <li>✔ Raspberry Pi</li>
                   <li>✔ Desktop Application</li>
                   <li>✔ Automated Email Alerts</li>
@@ -277,12 +283,12 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="product-card">
-              <img src="/images/products/env_monitor/env-monitor.jpg" alt="Smart Environment Monitor" className="product-img" />
-              <div className="product-body">
-                <h5 className="product-title">Smart Environment Monitor</h5>
-                <p className="product-text">Real-time monitoring for smart homes, offices, and industry.</p>
-                <ul className="product-features">
+            <div className={styles.productCard}>
+              <img src="/images/products/env_monitor/env-monitor.jpg" alt="Smart Environment Monitor" className={styles.productImage} />
+              <div className={styles.productContent}>
+                <h3 className={styles.productTitle}>Smart Environment Monitor</h3>
+                <p className={styles.productDescription}>Real-time monitoring for smart homes, offices, and industry.</p>
+                <ul className={styles.productFeatures}>
                   <li>✔ Wireless connectivity</li>
                   <li>✔ Mobile app integration</li>
                   <li>✔ Energy-efficient</li>
@@ -290,12 +296,12 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="product-card">
-              <img src="/images/products/security_sys/security-system.jpg" alt="Connected Security System" className="product-img" />
-              <div className="product-body">
-                <h5 className="product-title">Connected Security System</h5>
-                <p className="product-text">IoT-enabled security, cloud connectivity, 24/7 remote access.</p>
-                <ul className="product-features">
+            <div className={styles.productCard}>
+              <img src="/images/products/security_sys/security-system.jpg" alt="Connected Security System" className={styles.productImage} />
+              <div className={styles.productContent}>
+                <h3 className={styles.productTitle}>Connected Security System</h3>
+                <p className={styles.productDescription}>IoT-enabled security, cloud connectivity, 24/7 remote access.</p>
+                <ul className={styles.productFeatures}>
                   <li>✔ AI motion detection</li>
                   <li>✔ Cloud storage</li>
                   <li>✔ Instant mobile alerts</li>
@@ -304,8 +310,8 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          <div className="products-cta">
-            <Link to="/products" className="btn btn-primary btn-lg">
+          <div className={styles.productsCta}>
+            <Link to="/product-catalog" className={`${styles.ctaButton} ${styles.ctaLarge}`}>
               View All Products
             </Link>
           </div>
@@ -313,59 +319,60 @@ const Home: React.FC = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="section contact-section">
-        <div className="container">
-          <div className="contact-wrapper">
-            <div className="contact-container">
-              <div className="contact-header">
-                <div className="icon-wrapper">📩</div>
-                <h2 className="section-title">Let's get to work!</h2>
-                <p className="contact-subtitle">
-                  Have an idea or project in mind? Drop me a message and let's build something amazing together.
+      <section id="contact" className={styles.contactSection}>
+        <div className={styles.container}>
+          <div className={styles.contactWrapper}>
+            <div className={styles.contactContainer}>
+              <div className={styles.contactHeader}>
+                <div className={styles.contactIcon}>📩</div>
+                <h2 className={styles.sectionTitle}>Let's get to work!</h2>
+                <p className={styles.contactSubtitle}>
+                  Have an idea or project in mind? Drop us a message and let's build something amazing together.
                 </p>
               </div>
 
-              <form className="contact-form" onSubmit={handleSubmit}>
-                <div className="form-group">
+              <form className={styles.contactForm} onSubmit={handleSubmit}>
+                <div className={styles.formField}>
                   <input
                     type="text"
-                    className="form-input"
+                    className={styles.formInput}
                     name="name"
                     placeholder="Your Name"
                     required
                   />
                 </div>
-                <div className="form-group">
+                <div className={styles.formField}>
                   <input
                     type="email"
-                    className="form-input"
+                    className={styles.formInput}
                     name="email"
                     placeholder="Your Email"
                     required
                   />
                 </div>
-                <div className="form-group">
+                <div className={styles.formField}>
                   <textarea
-                    className="form-input form-textarea"
+                    className={`${styles.formInput} ${styles.formTextarea}`}
                     name="message"
                     rows={5}
                     placeholder="Your Message"
                     required
                   />
                 </div>
-                <button type="submit" className="btn btn-primary btn-full">
+                <button type="submit" className={`${styles.ctaButton} ${styles.ctaFull}`}>
                   Send Message
                 </button>
               </form>
 
-              <div className="contact-footer">
-                <p className="contact-social-text">or reach us on our social media</p>
-                <div className="social-links">
+              <div className={styles.contactFooter}>
+                <p className={styles.contactSocialLabel}>or reach us on our social media</p>
+                <div className={styles.socialLinks}>
                   <a
                     href="https://www.facebook.com/axisfive.solutions/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="social-btn"
+                    className={styles.socialLink}
+                    aria-label="Facebook"
                   >
                     <i className="fab fa-facebook-f"></i>
                   </a>
@@ -373,7 +380,8 @@ const Home: React.FC = () => {
                     href="https://www.instagram.com/a5.sol/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="social-btn"
+                    className={styles.socialLink}
+                    aria-label="Instagram"
                   >
                     <i className="fab fa-instagram"></i>
                   </a>
@@ -381,7 +389,8 @@ const Home: React.FC = () => {
                     href="https://github.com/MartinColoma/Axis-Five"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="social-btn"
+                    className={styles.socialLink}
+                    aria-label="GitHub"
                   >
                     <i className="fab fa-github"></i>
                   </a>
@@ -393,64 +402,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Footer Section */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-grid">
-            <div className="footer-col">
-              <h3 className="footer-brand">
-                <span className="axis">Axis</span>
-                <span className="five">Five Solutions</span>
-              </h3>
-              <p className="footer-tagline">Empowering Innovation, Inspiring the Future.</p>
-              <p className="footer-address">Maybunga, Pasig City Philippines 1607</p>
-            </div>
-
-            <div className="footer-col">
-              <h5 className="footer-title">Quick Links</h5>
-              <ul className="footer-links">
-                <li><button onClick={() => scrollToSection('home')} className="footer-link">Home</button></li>
-                <li><button onClick={() => scrollToSection('testimonials')} className="footer-link">Testimonials</button></li>
-                <li><Link to="/about" className="footer-link">About</Link></li>
-                <li><button onClick={() => scrollToSection('services')} className="footer-link">Services</button></li>
-                <li><button onClick={() => scrollToSection('products')} className="footer-link">Products</button></li>
-                <li><button onClick={() => scrollToSection('contact')} className="footer-link">Contact</button></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h5 className="footer-title">About Us</h5>
-              <ul className="footer-links">
-                <li><Link to="/about" className="footer-link">Who We Are</Link></li>
-                <li><Link to="/about#why-us" className="footer-link">Why Choose Us</Link></li>
-                <li><Link to="/about#tech-stack" className="footer-link">Technologies</Link></li>
-                <li><Link to="/about#founder" className="footer-link">Founder</Link></li>
-                <li><Link to="/about#team" className="footer-link">Our Developers</Link></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h5 className="footer-title">Reach us here:</h5>
-              <p className="footer-contact"><strong>Email:</strong> axisfive.solution@gmail.com</p>
-              <p className="footer-contact"><strong>Mobile:</strong> +63 945 509 3110</p>
-              <h6 className="footer-subtitle">Follow our social media</h6>
-              <div className="social-links">
-                <a href="https://www.facebook.com/axisfive.solutions/" target="_blank" rel="noopener noreferrer" className="social-btn">
-                  <i className="fab fa-facebook-f"></i>
-                </a>
-                <a href="https://www.instagram.com/a5.sol/" target="_blank" rel="noopener noreferrer" className="social-btn">
-                  <i className="fab fa-instagram"></i>
-                </a>
-                <a href="https://github.com/MartinColoma/Axis-Five" target="_blank" rel="noopener noreferrer" className="social-btn">
-                  <i className="fab fa-github"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <hr className="footer-divider" />
-          <p className="footer-copyright">&copy; 2025 Axis Five Solutions. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer onScrollToSection={scrollToSection} />
     </div>
   );
 };

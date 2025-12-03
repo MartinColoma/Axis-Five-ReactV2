@@ -1,9 +1,12 @@
 import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./About.css";
+import Navbar from '../Navigation/navbar';
+import Footer from '../Navigation/Footer';
 
 const About: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Handle hash navigation (e.g., /about#why-us)
@@ -12,11 +15,39 @@ const About: React.FC = () => {
       const element = document.getElementById(id);
       if (element) {
         setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const navbarHeight = 70;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
         }, 100);
       }
+    } else {
+      // If no hash, scroll to top
+      window.scrollTo(0, 0);
     }
   }, [location]);
+
+  const scrollToSection = (sectionId: string) => {
+    // If the section exists on this page (About page), scroll to it
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 70;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    } else {
+      // If section doesn't exist (like 'home', 'services', etc.), navigate to home page
+      navigate('/', { state: { scrollTo: sectionId } });
+    }
+  };
 
   return (
     <>
@@ -24,53 +55,8 @@ const About: React.FC = () => {
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       />
-      <header>
-        <nav className="navbar">
-          <div className="logo">
-            <Link to="/">
-              <h1>
-                <span className="axis">Axis</span>
-                <span className="five">Five Solutions</span>
-              </h1>
-            </Link>
-          </div>
-
-          <ul className="nav-links">
-            <li>
-              <Link to="/#home" className="active">Home</Link>
-            </li>
-            <li>
-              <Link to="/#testimonials">Testimonials</Link>
-            </li>
-
-            {/* About Dropdown */}
-            <li className="dropdown">
-              <Link to="/about">About</Link>
-              <div className="dropdown-content">
-                <Link to="/about#about">Who We Are</Link>
-                <Link to="/about#why-us">Why Choose Us</Link>
-                <Link to="/about#tech-stack">Technologies</Link>
-                <Link to="/about#founder">Founder</Link>
-                <Link to="/about#team">Our Developers</Link>
-              </div>
-            </li>
-
-            {/* Services */}
-            <li>
-              <Link to="/#services">Services</Link>
-            </li>
-
-            {/* Products */}
-            <li>
-              <Link to="/#products">Products</Link>
-            </li>
-
-            <li>
-              <Link to="/#contact">Contact</Link>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      
+      <Navbar onScrollToSection={scrollToSection} />
 
       {/* Hero Section */}
       <section className="hero-section" id="hero">
@@ -397,77 +383,8 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer>
-        <div className="footer-container">
-
-          <div className="footer-column">
-            <div className="footer-logo">
-              <Link to="/">
-                <h1>
-                  <span className="footer-axis">Axis</span>
-                  <span className="footer-five">Five Solutions</span>
-                </h1>
-              </Link>
-            </div>
-
-            <p className="tagline">Empowering Innovation, Inspiring the Future.</p>
-            <p className="subtitle">Maybunga, Pasig City Philippines 1607</p>
-          </div>
-
-          <div className="footer-column">
-            <h3>Quick Links</h3>
-            <ul className="footer-links">
-              <li><Link to="/#home">Home</Link></li>
-              <li><Link to="/#testimonials">Testimonials</Link></li>
-              <li><Link to="/about">About</Link></li>
-              <li><Link to="/#services">Services</Link></li>
-              <li><Link to="/#products">Products</Link></li>
-              <li><Link to="/#contact">Contact</Link></li>
-            </ul>
-          </div>
-
-          <div className="footer-column">
-            <h3>About Us</h3>
-            <ul className="footer-links">
-              <li><Link to="/about#about">Who We Are</Link></li>
-              <li><Link to="/about#why-us">Why Choose Us</Link></li>
-              <li><Link to="/about#tech-stack">Technologies</Link></li>
-              <li><Link to="/about#founder">Founder</Link></li>
-              <li><Link to="/about#team">Our Developers</Link></li>
-            </ul>
-          </div>
-
-          <div className="footer-column">
-            <h3>Reach us here:</h3>
-            <p className="subtitle"><strong>Email:</strong> axisfive.solution@gmail.com</p>
-            <p className="subtitle"><strong>Mobile:</strong> +63 945 509 3110</p>
-
-            <div className="footer-social">
-              <h4>Follow us</h4>
-
-              <div className="social-links">
-                <a href="https://www.facebook.com/axisfive.solutions/" target="_blank" rel="noopener" className="footer-btn">
-                  <i className="fab fa-facebook-f" />
-                </a>
-
-                <a href="https://www.instagram.com/a5.sol/" target="_blank" rel="noopener" className="footer-btn">
-                  <i className="fab fa-instagram" />
-                </a>
-
-                <a href="https://github.com/MartinColoma/Axis-Five" target="_blank" rel="noopener" className="footer-btn">
-                  <i className="fab fa-github" />
-                </a>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="copyright">
-          <p>© 2025 Axis Five Solutions. All rights reserved.</p>
-        </div>
-      </footer>
+      {/* Footer Section */}
+      <Footer onScrollToSection={scrollToSection} />
     </>
   );
 };
