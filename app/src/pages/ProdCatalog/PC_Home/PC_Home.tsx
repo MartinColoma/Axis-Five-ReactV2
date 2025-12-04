@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from './PC_Home.module.css';
-import Navbar from '../../Landing/Navigation/navbar';
+import Navbar from '../PC_Navigation/PC_Navbar';
 import Footer from '../../Landing/Navigation/Footer';
 interface Product {
   id: number;
@@ -208,7 +208,7 @@ export default function Products() {
   return (
     <div className={styles.page}>
       {/* Navbar */}
-      <Navbar onScrollToSection={scrollToSection} />
+      <Navbar />
 
 
       {/* Featured Carousel */}

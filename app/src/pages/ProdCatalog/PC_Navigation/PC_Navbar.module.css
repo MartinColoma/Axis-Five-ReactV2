@@ -1,0 +1,291 @@
+/* Navbar Base Styles */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+  background-color: rgba(18, 18, 18, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.navbarContainer {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+/* Logo Styles */
+.navbarBrand {
+  text-decoration: none;
+  z-index: 1001;
+}
+
+.logo {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.axis {
+  color: #00bcd4;
+}
+
+.five {
+  color: #fff;
+}
+
+.store {
+  color: #ffffff;
+  font-weight: 400;
+}
+
+/* Navigation Menu */
+.navbarMenu {
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.navbarNav {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 2rem;
+}
+
+.navItem {
+  position: relative;
+}
+
+.navLink {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #00bcd4;
+  transition: width 0.3s ease;
+}
+
+.navLink:hover {
+  color: #00bcd4;
+}
+
+.navLink:hover::after {
+  width: 100%;
+}
+
+/* Navbar Actions */
+.navbarActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Login Button */
+.loginBtn {
+  padding: 8px 24px;
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  border: none;
+  color: #ffffff;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.loginBtn:hover {
+  background: linear-gradient(135deg, #00d4e8 0%, #00b8cc 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+}
+
+/* Register Button */
+.registerBtn {
+  padding: 8px 24px;
+  background: transparent;
+  border: 2px solid #00bcd4;
+  color: #00bcd4;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.registerBtn:hover {
+  background: #00bcd4;
+  color: #121212;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+}
+
+/* Cart Button */
+.cartBtn {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: #e0e0e0;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+
+.cartBtn:hover {
+  color: #00bcd4;
+  background: rgba(0, 188, 212, 0.1);
+}
+
+.cartBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hamburger Menu Toggle */
+.navbarToggler {
+  display: none;
+  flex-direction: column;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  gap: 4px;
+  z-index: 1001;
+}
+
+.togglerBar {
+  width: 25px;
+  height: 3px;
+  background-color: #e0e0e0;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.navbarToggler.active .togglerBar:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+  background-color: #00bcd4;
+}
+
+.navbarToggler.active .togglerBar:nth-child(2) {
+  opacity: 0;
+}
+
+.navbarToggler.active .togglerBar:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+  background-color: #00bcd4;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 991px) {
+  .navbarToggler {
+    display: flex;
+  }
+
+  .navbarMenu {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background-color: rgba(18, 18, 18, 0.98);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .navbarMenu.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .navbarNav {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .navLink {
+    font-size: 1.1rem;
+    padding: 0.75rem 0;
+  }
+
+  .navbarActions {
+    gap: 0.75rem;
+  }
+
+  .loginBtn,
+  .registerBtn {
+    padding: 6px 18px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbarContainer {
+    padding: 0 1rem;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+  }
+
+  .loginBtn,
+  .registerBtn {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+
+  .cartBtn svg {
+    width: 20px;
+    height: 20px;
+  }
+}

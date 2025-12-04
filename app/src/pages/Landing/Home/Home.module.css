@@ -17,7 +17,7 @@
 /* ===== LAYOUT ===== */
 .pageWrapper {
   background: var(--darker-bg);
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   width: 100%;
 }
 
@@ -71,7 +71,7 @@
 /* ===== HERO SECTION ===== */
 .heroSection {
   background: var(--darker-bg);
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
   padding: 3rem 0;
@@ -92,7 +92,7 @@
 }
 
 .heroCarousel {
-  flex: 1 1 450px;
+  flex: 1 1 500px;
 }
 
 .heroTitle {
@@ -167,9 +167,10 @@
 .testimonialsSection {
   background: var(--card-bg);
   padding: 5rem 0;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
+  scroll-margin-top: var(--navbar-height);
 }
 
 .testimonialsGrid {
@@ -230,9 +231,10 @@
 .aboutSection {
   background: var(--darker-bg);
   padding: 5rem 0;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
+  scroll-margin-top: var(--navbar-height);
 }
 
 .aboutGrid {
@@ -269,9 +271,10 @@
 .servicesSection {
   background: var(--card-bg);
   padding: 5rem 0;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
+  scroll-margin-top: var(--navbar-height);
 }
 
 .servicesGrid {
@@ -314,9 +317,10 @@
 .productsSection {
   background: var(--darker-bg);
   padding: 5rem 0;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
+  scroll-margin-top: var(--navbar-height);
 }
 
 .productsGrid {
@@ -382,9 +386,10 @@
 .contactSection {
   background: var(--card-bg);
   padding: 5rem 0;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
+  scroll-margin-top: var(--navbar-height);
 }
 
 .contactWrapper {
@@ -634,6 +639,7 @@
 
   .heroSection {
     min-height: auto;
+    padding-top: calc(var(--navbar-height) + 2rem);
   }
 
   .servicesGrid,

@@ -1,0 +1,464 @@
+:root {
+  --primary-cyan: #00bcd4;
+  --dark-bg: #121212;
+  --card-bg: #1f1f1f;
+  --text-light: #e0e0e0;
+  --text-muted: #bbbbbb;
+  --placeholder-color: #6a6a6a;
+}
+
+/* Modal Overlay - CRITICAL */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.modalContainer {
+  background: rgba(31, 31, 31, 0.98);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 10000;
+  animation: slideUp 0.3s ease;
+}
+
+.closeButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--primary-cyan);
+}
+
+.modalContent {
+  padding: 2.5rem;
+  padding-top: 3rem;
+}
+
+/* Content Wrapper - Split Layout */
+.contentWrapper {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+}
+
+/* Illustration Section */
+.illustrationContainer {
+  flex: 1;
+  max-width: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: float 3s ease-in-out infinite;
+}
+
+.illustration {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 30px rgba(0, 188, 212, 0.2));
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Form Section */
+.formSection {
+  flex: 1;
+  max-width: 450px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.container {
+  background-color: var(--dark-bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  gap: 60px;
+}
+
+.cardWrapper {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  background: rgba(31, 31, 31, 0.95);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 188, 212, 0.15);
+}
+
+.cardBody {
+  padding: 2.5rem;
+}
+
+/* Tab Navigation */
+.tabContainer {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #333;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  position: relative;
+  bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--primary-cyan);
+}
+
+.activeTab {
+  color: var(--primary-cyan);
+  border-bottom-color: var(--primary-cyan);
+}
+
+/* Alerts */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+  position: relative;
+}
+
+.alertDanger {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid #f44336;
+  color: #f44336;
+}
+
+.alertSuccess {
+  background-color: rgba(0, 188, 212, 0.1);
+  border: 1px solid var(--primary-cyan);
+  color: var(--primary-cyan);
+}
+
+.alertClose {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alertClose:hover {
+  opacity: 1;
+}
+
+/* Form Groups */
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.input {
+  width: 100%;
+  background-color: #2b2b2b;
+  color: var(--text-light);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  transition: all 0.2s ease-in-out;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-cyan);
+  box-shadow: 0 0 8px rgba(0, 188, 212, 0.25);
+  background-color: #2b2b2b;
+  color: var(--text-light);
+}
+
+.input::placeholder {
+  color: var(--placeholder-color);
+  opacity: 1;
+}
+
+.input:focus::placeholder {
+  color: #7a7a7a;
+}
+
+/* Password Toggle */
+.passwordWrapper {
+  position: relative;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.togglePassword:hover {
+  color: var(--primary-cyan);
+}
+
+/* Buttons */
+.btnPrimary {
+  width: 100%;
+  background: var(--primary-cyan);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  color: var(--dark-bg);
+  letter-spacing: 0.5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background-color: #04d0e9;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 188, 212, 0.4);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnOutline {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 600;
+  color: #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnOutline:hover {
+  background: #333;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+/* Register Steps */
+.formStep {
+  display: none;
+  opacity: 0;
+  transform: translateX(15px);
+  transition: all 0.3s ease;
+}
+
+.formStep.active {
+  display: block;
+  opacity: 1;
+  transform: translateX(0);
+  animation: slideIn 0.3s ease;
+}
+
+/* Row and Columns for Registration Step 1 */
+.row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.col {
+  flex: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contentWrapper {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .illustrationContainer {
+    max-width: 250px;
+  }
+
+  .formSection {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .modalContainer {
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 576px) {
+  .modalContent {
+    padding: 1.5rem;
+    padding-top: 2.5rem;
+  }
+
+  .contentWrapper {
+    gap: 1.5rem;
+  }
+
+  .illustrationContainer {
+    max-width: 200px;
+  }
+
+  .cardBody {
+    padding: 1.5rem;
+  }
+
+  .input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .tab {
+    font-size: 1rem;
+    padding: 10px 15px;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .col {
+    width: 100%;
+  }
+}
+
+@media (max-width: 992px) {
+  .container {
+    flex-direction: column;
+    gap: 40px;
+  }
+}

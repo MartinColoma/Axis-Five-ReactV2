@@ -24,12 +24,6 @@ const Navbar: React.FC<NavbarProps> = ({ onScrollToSection }) => {
     setIsDropdownOpen(false);
   };
 
-  const toggleDropdown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,6 +92,49 @@ const Navbar: React.FC<NavbarProps> = ({ onScrollToSection }) => {
     }
   };
 
+  // Handle About button click - scroll to about section AND toggle dropdown
+  const handleAboutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Toggle dropdown (don't close mobile menu to keep dropdown visible)
+    setIsDropdownOpen(!isDropdownOpen);
+    
+    // Scroll to about section on homepage (without closing menu on mobile)
+    if (onScrollToSection) {
+      onScrollToSection('about');
+    } else {
+      if (window.location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const section = document.getElementById('about');
+          if (section) {
+            const navbarHeight = 70;
+            const elementPosition = section.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
+      } else {
+        const section = document.getElementById('about');
+        if (section) {
+          const navbarHeight = 70;
+          const elementPosition = section.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+  };
+
   return (
     <nav className={styles.navbar} ref={navbarRef}>
       <div className={styles.navbarContainer}>
@@ -140,7 +177,7 @@ const Navbar: React.FC<NavbarProps> = ({ onScrollToSection }) => {
             <li className={`${styles.navItem} ${styles.dropdown} ${isDropdownOpen ? styles.active : ''}`}>
               <button
                 className={`${styles.navLink} ${styles.dropdownToggle}`}
-                onClick={toggleDropdown}
+                onClick={handleAboutClick}
                 aria-expanded={isDropdownOpen}
               >
                 About
