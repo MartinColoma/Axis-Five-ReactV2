@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { X, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import axios from 'axios';
+import { X, Eye, EyeOff } from 'lucide-react';
 import styles from './PC_LoginReg.module.css';
+import usePageMeta from  '../../../hooks/usePageMeta';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,6 +23,19 @@ interface FormData {
 type AuthMode = 'login' | 'register';
 type RegisterStep = 1 | 2;
 
+// API Configuration - Set your backend URL here
+const API_BASE = import.meta.env.VITE_API_LOCAL_SERVER;
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_BASE,
+  withCredentials: true,
+  timeout: 60000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [registerStep, setRegisterStep] = useState<RegisterStep>(1);
@@ -29,6 +44,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  usePageMeta("AxisFive Store - Account", "/Logos/A5_Logo1.png");
 
   const [formData, setFormData] = useState<FormData>({
     username: '',
@@ -72,19 +88,21 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-        }),
+      const response = await api.post('/api/auth/login', {
+        username: formData.username,
+        password: formData.password,
       });
 
-      const data = await response.json();
+      const { data } = response;
 
-      if (response.ok) {
+      if (data && data.user) {
         setSuccess('Login successful!');
+        
+        // Store auth token if provided
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token);
+        }
+
         setTimeout(() => {
           if (data.user.role === 'admin') {
             window.location.href = '/admin/home';
@@ -92,12 +110,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             window.location.href = '/user/home';
           }
         }, 1000);
-      } else {
-        setError(data.message || 'Invalid username or password!');
       }
-    } catch (err) {
-      setError('Unable to connect to the server. Please try again later.');
+    } catch (err: any) {
       console.error('Login error:', err);
+
+      if (err.response?.status === 401) {
+        setError('Invalid username or password!');
+      } else if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. Please check your internet connection.');
+      } else if (err.request) {
+        setError('Cannot connect to the server. Please check your network.');
+      } else {
+        setError(err.response?.data?.message || 'Unable to connect to the server. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
@@ -137,21 +162,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          username: formData.username,
-          password: formData.password,
-        }),
+      const response = await api.post('/api/auth/register', {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         setSuccess('Registration successful! You can now login.');
         setFormData({
           username: '',
@@ -166,12 +185,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           setMode('login');
           setSuccess('');
         }, 2000);
-      } else {
-        setError(data.message || 'Something went wrong. Please try again.');
       }
-    } catch (err) {
-      setError('Unable to connect to the server. Please try again later.');
+    } catch (err: any) {
       console.error('Registration error:', err);
+
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. Please check your internet connection.');
+      } else if (err.request) {
+        setError('Cannot connect to the server. Please check your network.');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -256,8 +282,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 <div>
                   <div className={styles.formGroup}>
                     <label htmlFor="username" className={styles.label}>
-                      <User size={16} />
-                      Username
+                      Username:
                     </label>
                     <input
                       type="text"
@@ -273,8 +298,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
                   <div className={styles.formGroup}>
                     <label htmlFor="password" className={styles.label}>
-                      <Lock size={16} />
-                      Password
+                      Password:
                     </label>
                     <div className={styles.passwordWrapper}>
                       <input
@@ -313,8 +337,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       <div className={styles.col}>
                         <div className={styles.formGroup}>
                           <label className={styles.label}>
-                            <User size={16} />
-                            First Name
+                            First Name:
                           </label>
                           <input
                             type="text"
@@ -330,8 +353,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       <div className={styles.col}>
                         <div className={styles.formGroup}>
                           <label className={styles.label}>
-                            <User size={16} />
-                            Last Name
+                            Last Name:
                           </label>
                           <input
                             type="text"
@@ -348,8 +370,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
-                        <Mail size={16} />
-                        Email Address
+                        Email Address:
                       </label>
                       <input
                         type="email"
@@ -374,8 +395,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   <div className={`${styles.formStep} ${registerStep === 2 ? styles.active : ''}`}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
-                        <User size={16} />
-                        Username
+                        Username:
                       </label>
                       <input
                         type="text"
@@ -390,8 +410,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
-                        <Lock size={16} />
-                        Password
+                        Password:
                       </label>
                       <div className={styles.passwordWrapper}>
                         <input
@@ -415,8 +434,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
-                        <Lock size={16} />
-                        Confirm Password
+                        Confirm Password:
                       </label>
                       <div className={styles.passwordWrapper}>
                         <input

@@ -36,7 +36,7 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // 🔹 Import Route Modules
 // =========================================
 const contact_us = require("./routes/landing/contact-us");
-
+const auth = require("./routes/auth/auth")
 
 // =========================================
 // 🔹 Serve Static Files (Frontend Build)
@@ -56,6 +56,8 @@ app.get("/api/health", (req, res) => {
 console.log("\n🔧 Mounting routes...");
 contact_us(app);
 console.log("✅ Contact Us route mounted");
+auth(app);
+console.log("✅ Auth route mounted");
 
 // =========================================
 // 🔹 ROUTE DEBUGGER - Print All Registered Routes

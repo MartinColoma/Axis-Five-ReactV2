@@ -4,11 +4,13 @@ import styles from './Home.module.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Navbar from '../Navigation/navbar';
 import Footer from '../Navigation/Footer';
+import usePageMeta from  '../../../hooks/usePageMeta';
 
 const Home: React.FC = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeAboutSlide, setActiveAboutSlide] = useState(0);
   const location = useLocation();
+  usePageMeta("AxisFive Solution", "/Logos/A5_Logo1.png");
 
   const heroSlides = [
     '/images/Home/H1.png',
@@ -40,7 +42,7 @@ const Home: React.FC = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_LOCAL_SERVER}/api/landing/contact-us`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/landing/contact-us`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

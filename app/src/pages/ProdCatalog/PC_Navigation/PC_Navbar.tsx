@@ -1,24 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { User, LogOut, Package, FileText, LayoutDashboard } from 'lucide-react';
 import styles from './PC_Navbar.module.css';
 import LoginPage from '../PC_Auth/PC_LoginReg';
 
 interface EcommerceNavbarProps {
   cartItemCount?: number;
   onCartClick?: () => void;
+  isLoggedIn?: boolean;
+  userName?: string;
 }
 
 const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({ 
   cartItemCount = 0,
-  onCartClick 
+  onCartClick,
+  isLoggedIn = false,
+  userName = 'Guest'
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const navbarRef = useRef<HTMLDivElement>(null);
+  const accountDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if we're on login OR register route
   const showAuthModal = location.pathname === '/login' || location.pathname === '/register';
   const initialMode = location.pathname === '/register' ? 'register' : 'login';
 
@@ -30,7 +36,14 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
     setIsMobileMenuOpen(false);
   };
 
-  // Handle scroll effect
+  const toggleAccountDropdown = () => {
+    setIsAccountDropdownOpen(!isAccountDropdownOpen);
+  };
+
+  const closeAccountDropdown = () => {
+    setIsAccountDropdownOpen(false);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -40,7 +53,6 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (navbarRef.current && !navbarRef.current.contains(event.target as Node)) {
@@ -57,7 +69,22 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
     };
   }, [isMobileMenuOpen]);
 
-  // Close mobile menu on window resize
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
+        closeAccountDropdown();
+      }
+    };
+
+    if (isAccountDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isAccountDropdownOpen]);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 991) {
@@ -87,11 +114,36 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
     }
   };
 
+  const handleLogin = () => {
+    closeAccountDropdown();
+    navigate('/login', {
+      state: { backgroundLocation: location },
+    });
+  };
+
+  const handleRegister = () => {
+    closeAccountDropdown();
+    navigate('/register', {
+      state: { backgroundLocation: location },
+    });
+  };
+
+  const handleLogout = () => {
+    closeAccountDropdown();
+    // Add logout logic here
+    console.log('Logging out...');
+  };
+
+  const handleAccountNavigation = (path: string) => {
+    closeAccountDropdown();
+    closeMobileMenu();
+    navigate(path);
+  };
+
   return (
     <>
       <nav className={`${styles.navbar} ${isScrolled ? styles.scrolled : ''}`} ref={navbarRef}>
         <div className={styles.navbarContainer}>
-          {/* Logo - Left Side */}
           <Link to="/product-catalog" className={styles.navbarBrand} onClick={closeMobileMenu}>
             <h1 className={styles.logo}>
               <span className={styles.axis}>Axis</span>
@@ -100,11 +152,10 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
             </h1>
           </Link>
 
-          {/* Main Navigation - Center */}
           <div className={`${styles.navbarMenu} ${isMobileMenuOpen ? styles.active : ''}`}>
             <ul className={styles.navbarNav}>
               <li className={styles.navItem}>
-                <Link to="/products" className={styles.navLink} onClick={closeMobileMenu}>
+                <Link to="/product-catalog" className={styles.navLink} onClick={closeMobileMenu}>
                   Products
                 </Link>
               </li>
@@ -129,32 +180,7 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
             </ul>
           </div>
 
-          {/* Right Side Actions */}
           <div className={styles.navbarActions}>
-            {/* Login button - opens modal with background location */}
-            <button
-              className={styles.loginBtn} 
-              onClick={() =>
-                navigate('/login', {
-                  state: { backgroundLocation: location },
-                })
-              }
-            >
-              LOGIN
-            </button>
-
-            {/* Register button - opens modal with background location */}
-            <button
-              className={styles.registerBtn} 
-              onClick={() =>
-                navigate('/register', {
-                  state: { backgroundLocation: location },
-                })
-              }
-            >
-              REGISTER
-            </button>
-
             <button 
               className={styles.cartBtn}
               onClick={handleCartClick}
@@ -179,8 +205,76 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
                 <span className={styles.cartBadge}>{cartItemCount}</span>
               )}
             </button>
+            {/* Account Dropdown */}
+            <div className={styles.accountDropdown} ref={accountDropdownRef}>
+              <button
+                className={styles.accountBtn}
+                onClick={toggleAccountDropdown}
+                aria-label="Account menu"
+                aria-expanded={isAccountDropdownOpen}
+              >
+                <User size={20} />
+              </button>
 
-            {/* Hamburger Menu - Mobile Only */}
+              {isAccountDropdownOpen && (
+                <div className={styles.dropdownMenu}>
+                  {!isLoggedIn ? (
+                    <>
+                      <button
+                        className={styles.dropdownItem}
+                        onClick={handleLogin}
+                      >
+                        <User size={16} />
+                        <span>Login</span>
+                      </button>
+                      <button
+                        className={styles.dropdownItem}
+                        onClick={handleRegister}
+                      >
+                        <User size={16} />
+                        <span>Register</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.dropdownHeader}>
+                        <span className={styles.userName}>{userName}</span>
+                      </div>
+                      <div className={styles.dropdownDivider}></div>
+                      <button
+                        className={styles.dropdownItem}
+                        onClick={() => handleAccountNavigation('/user/dashboard')}
+                      >
+                        <LayoutDashboard size={16} />
+                        <span>Account</span>
+                      </button>
+                      <button
+                        className={styles.dropdownItem}
+                        onClick={() => handleAccountNavigation('/user/orders')}
+                      >
+                        <Package size={16} />
+                        <span>Orders</span>
+                      </button>
+                      <button
+                        className={styles.dropdownItem}
+                        onClick={() => handleAccountNavigation('/user/rfq')}
+                      >
+                        <FileText size={16} />
+                        <span>RFQ</span>
+                      </button>
+                      <div className={styles.dropdownDivider}></div>
+                      <button
+                        className={`${styles.dropdownItem} ${styles.logoutItem}`}
+                        onClick={handleLogout}
+                      >
+                        <LogOut size={16} />
+                        <span>Logout</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
             <button
               className={`${styles.navbarToggler} ${isMobileMenuOpen ? styles.active : ''}`}
               type="button"
@@ -196,7 +290,6 @@ const EcommerceNavbar: React.FC<EcommerceNavbarProps> = ({
         </div>
       </nav>
 
-      {/* Render modal for both login and register */}
       {showAuthModal && (
         <LoginPage
           isOpen={true}

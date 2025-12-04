@@ -29,7 +29,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
       try {
         const response = await axios.post(
-          "https://librax-website-frontend.onrender.com/api/auth/verify-token",
+          "http://localhost:10000/api/auth/verify-token",
           { token },
           { withCredentials: true }
         );

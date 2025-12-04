@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styles from './PC_Home.module.css';
 import Navbar from '../PC_Navigation/PC_Navbar';
 import Footer from '../../Landing/Navigation/Footer';
+import usePageMeta from  '../../../hooks/usePageMeta';
+
 interface Product {
   id: number;
   title: string;
@@ -109,6 +111,7 @@ export default function Products() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [heroCarouselIndex, setHeroCarouselIndex] = useState(0);
+  usePageMeta("AxisFive Store - Products", "/Logos/A5_Logo1.png");
 
   // Auto-play hero carousel
   useEffect(() => {
