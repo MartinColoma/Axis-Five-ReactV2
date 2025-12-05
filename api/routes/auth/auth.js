@@ -16,7 +16,7 @@ module.exports = function authRoutes(app) {
   // Cookie configuration
   const COOKIE_OPTIONS = {
     httpOnly: true,        // Can't be accessed by JavaScript (XSS protection)
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    secure: true, // HTTPS only in production
     sameSite: 'lax',      // CSRF protection
     maxAge: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
     path: '/'             // Available for all routes
