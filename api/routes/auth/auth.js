@@ -15,20 +15,15 @@ module.exports = function authRoutes(app) {
 
   // Cookie configuration
   const COOKIE_OPTIONS = {
-    httpOnly: true,        // Can't be accessed by JavaScript (XSS protection)
-    secure: true, // HTTPS only in production
-    sameSite: 'lax',      // CSRF protection
-    maxAge: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
-    path: '/'             // Available for all routes
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // ✅ Only true in production
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 2 * 60 * 60 * 1000, // 2 hours
+    path: '/'
   };
 
-  router.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Access-Control-Allow-Credentials", "true"); // IMPORTANT for cookies
-    if (req.method === "OPTIONS") return res.sendStatus(200);
-    next();
-  });
+  // ❌ REMOVED DUPLICATE CORS - Global CORS handles this now
+  // The duplicate CORS middleware was causing conflicts
 
   async function generateUserId(role) {
     const { data, error } = await supabase
@@ -186,8 +181,11 @@ module.exports = function authRoutes(app) {
         { expiresIn: "2h" }
       );
 
-      // 🔥 SET HTTP-ONLY COOKIE (Primary storage)
+      // 🔥 SET HTTP-ONLY COOKIE
       res.cookie('auth_token', token, COOKIE_OPTIONS);
+
+      console.log('✅ Login successful for:', user.username);
+      console.log('🍪 Cookie set with options:', COOKIE_OPTIONS);
 
       return res.status(200).json({
         success: true,
@@ -217,6 +215,8 @@ module.exports = function authRoutes(app) {
       // Try to get token from cookie first, then Authorization header
       const token = req.cookies?.auth_token || req.headers.authorization?.split(" ")[1];
       
+      console.log('🚪 Logout attempt - Token found:', !!token);
+      
       if (!token) {
         return res.status(401).json({ success: false, message: "Missing token." });
       }
@@ -232,6 +232,8 @@ module.exports = function authRoutes(app) {
       // Clear the cookie
       res.clearCookie('auth_token', { path: '/' });
 
+      console.log('✅ Logout successful for user:', decoded.username);
+
       return res.status(200).json({ success: true, message: "Logout successful." });
     } catch (err) {
       console.error("❌ Logout Error:", err);
@@ -240,14 +242,32 @@ module.exports = function authRoutes(app) {
   });
 
   // =========================================
-  // 🔹 GET /verify-token (Check cookie first)
+  // 🔹 GET /verify-token (Check cookie first) - WITH DEBUG LOGGING
   // =========================================
   router.get("/verify-token", async (req, res) => {
+    console.log('\n🔍 === VERIFY TOKEN DEBUG ===');
+    console.log('Cookies received:', req.cookies);
+    console.log('Cookie keys:', Object.keys(req.cookies || {}));
+    console.log('Auth header:', req.headers.authorization);
+    console.log('Has auth_token cookie:', !!req.cookies?.auth_token);
+    console.log('================================\n');
+
     // Try cookie first (primary), then Authorization header (fallback)
     const token = req.cookies?.auth_token || req.headers.authorization?.split(" ")[1];
     
     if (!token) {
-      return res.status(401).json({ success: false, message: "Missing token." });
+      console.log('❌ No token found in cookies or headers');
+      return res.status(401).json({ 
+        success: false, 
+        message: "Missing token.",
+        debug: {
+          hasCookies: !!req.cookies,
+          cookieKeys: Object.keys(req.cookies || {}),
+          hasAuthHeader: !!req.headers.authorization,
+          origin: req.headers.origin,
+          referer: req.headers.referer
+        }
+      });
     }
 
     try {
@@ -263,6 +283,7 @@ module.exports = function authRoutes(app) {
 
       if (!session) {
         res.clearCookie('auth_token', { path: '/' });
+        console.log('❌ Session invalid or expired for user:', decoded.username);
         return res.status(401).json({ 
           success: false, 
           message: "Session expired or invalid.",
@@ -279,8 +300,11 @@ module.exports = function authRoutes(app) {
       // Refresh cookie expiration
       res.cookie('auth_token', token, COOKIE_OPTIONS);
 
+      console.log('✅ Token verified for user:', decoded.username);
+
       return res.status(200).json({ success: true, user: decoded });
     } catch (err) {
+      console.error('❌ Token verification failed:', err.message);
       res.clearCookie('auth_token', { path: '/' });
       return res.status(401).json({ success: false, message: "Invalid or expired token." });
     }

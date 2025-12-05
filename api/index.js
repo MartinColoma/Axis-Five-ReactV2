@@ -6,7 +6,7 @@ require("dotenv").config(); // ✅ Load environment variables first
 
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require("cookie-parser"); // 🔥 ADD THIS
+const cookieParser = require("cookie-parser");
 const path = require("path");
 
 const app = express();
@@ -14,20 +14,36 @@ const app = express();
 // =========================================
 // 🔹 Middleware (ORDER MATTERS!)
 // =========================================
-app.use(express.json());
 
-// 🔥 ADD cookie-parser BEFORE routes
+// 🔥 1. Cookie parser FIRST
 app.use(cookieParser());
 
+// 🔥 2. CORS configuration with proper settings
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "http://localhost:5174", // Add backup local port
       "https://axis-five-solution.onrender.com",
-    ],
-    credentials: true, // ✅ Already correct - needed for cookies
+      process.env.FRONTEND_URL, // Add this env variable in Render
+    ].filter(Boolean), // Remove undefined values
+    credentials: true, // ✅ Critical for cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Set-Cookie'],
   })
 );
+
+// 🔥 3. JSON parser
+app.use(express.json());
+
+// 🔥 4. Request Logger (MOVED BEFORE ROUTES!)
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
+  console.log(`🍪 Cookies:`, req.cookies);
+  console.log(`🔑 Auth Header:`, req.headers.authorization ? 'Present' : 'None');
+  next();
+});
 
 // =========================================
 // 🔹 Validate Environment Variables
@@ -41,7 +57,7 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // 🔹 Import Route Modules
 // =========================================
 const contact_us = require("./routes/landing/contact-us");
-const auth = require("./routes/auth/auth")
+const auth = require("./routes/auth/auth");
 
 // =========================================
 // 🔹 Serve Static Files (Frontend Build)
@@ -52,7 +68,11 @@ app.use(express.static(path.join(__dirname, "..", "dist")));
 // 🔹 Health Check Endpoint
 // =========================================
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ message: "✅ API is running" });
+  res.status(200).json({ 
+    message: "✅ API is running",
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development'
+  });
 });
 
 // =========================================
@@ -102,17 +122,8 @@ const printRoutes = () => {
 printRoutes();
 
 // =========================================
-// 🔹 Request Logger Middleware (for debugging)
-// =========================================
-app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
-  next();
-});
-
-// =========================================
 // 🔹 SPA Catch-All (EXCLUDES API ROUTES)
 // =========================================
-// Ensures React routes still work, but /api calls go to Express
 app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
 });
@@ -132,4 +143,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`\n🚀 Axis-Five API running on http://localhost:${PORT}`);
   console.log(`📍 Server started at: ${new Date().toLocaleString()}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🍪 Cookie parser: Enabled`);
+  console.log(`🔐 CORS credentials: Enabled`);
 });

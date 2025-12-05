@@ -168,7 +168,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             margin: '0 auto 16px'
           }}></div>
           <p style={{ color: '#fff', fontSize: '14px', margin: 0 }}>
-            Checking session...
+            Loading...
           </p>
         </div>
         <style>{`
