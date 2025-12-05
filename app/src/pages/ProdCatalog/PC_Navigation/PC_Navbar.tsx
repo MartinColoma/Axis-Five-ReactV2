@@ -42,10 +42,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
   const showAuthModal = location.pathname === '/login' || location.pathname === '/register';
   const initialMode = location.pathname === '/register' ? 'register' : 'login';
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
@@ -245,12 +241,12 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                     <>
                       <div className={styles.dropdownHeader}>
                         <span className={styles.userName}>{getDisplayName()}</span>
-                        <span className={styles.userRole}>Customer</span>
+                        <span className={styles.userRole}> (Customer)</span>
                       </div>
                       <div className={styles.dropdownDivider}></div>
                       <button
                         className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/user/home')}
+                        onClick={() => handleAccountNavigation('/product-catalog')}
                       >
                         <Home size={16} />
                         <span>Home</span>
@@ -301,7 +297,14 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                       <div className={styles.dropdownDivider}></div>
                       <button
                         className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/admin/home')}
+                        onClick={() => handleAccountNavigation('/product-catalog')}
+                      >
+                        <Home size={16} />
+                        <span>Home</span>
+                      </button>
+                      <button
+                        className={styles.dropdownItem}
+                        onClick={() => handleAccountNavigation('/admin/dashboard')}
                       >
                         <LayoutDashboard size={16} />
                         <span>Dashboard</span>
@@ -355,18 +358,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
               )}
             </div>
             )}
-            
-            <button
-              className={`${styles.navbarToggler} ${isMobileMenuOpen ? styles.active : ''}`}
-              type="button"
-              onClick={toggleMobileMenu}
-              aria-label="Toggle navigation"
-              aria-expanded={isMobileMenuOpen}
-            >
-              <span className={styles.togglerBar}></span>
-              <span className={styles.togglerBar}></span>
-              <span className={styles.togglerBar}></span>
-            </button>
           </div>
         </div>
       </nav>
@@ -384,7 +375,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
         <div className={styles.logoutModalOverlay} onClick={handleCancelLogout}>
           <div className={styles.logoutModalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.logoutModalHeader}>
-              <LogOut size={32} className={styles.logoutIcon} />
               <h3>Confirm Logout</h3>
             </div>
             <div className={styles.logoutModalBody}>

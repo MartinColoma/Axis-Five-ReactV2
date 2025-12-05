@@ -27,7 +27,7 @@ const AppRoutes: FC = () => {
 
         {/* Protected Admin Routes */}
         <Route 
-          path="/admin/home" 
+          path="/admin/dashboard" 
           element={
             <ProtectedRoute requiredRole="admin">
               <AdminHome />

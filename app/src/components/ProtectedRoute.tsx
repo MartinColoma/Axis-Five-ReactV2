@@ -48,7 +48,7 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({
   if (requiredRole && userData?.role !== requiredRole) {
     // Redirect based on user's actual role
     if (userData?.role === 'admin') {
-      return <Navigate to="/admin/home" replace />;
+      return <Navigate to="/admin/dashboard" replace />;
     } else {
       return <Navigate to="/user/home" replace />;
     }
