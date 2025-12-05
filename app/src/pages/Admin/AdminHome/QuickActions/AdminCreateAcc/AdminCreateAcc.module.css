@@ -1,0 +1,421 @@
+:root {
+  --primary-cyan: #00bcd4;
+  --dark-bg: #121212;
+  --card-bg: #1f1f1f;
+  --text-light: #e0e0e0;
+  --text-muted: #bbbbbb;
+  --border-color: #333;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+}
+
+/* Tab container */
+.tabPane {
+  animation: fadeIn 0.2s ease-in;
+  background: var(--dark-bg);
+  padding: 1.25rem;
+  border-radius: 6px;
+}
+
+.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Loading overlay */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loadingContent {
+  color: white;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Form header */
+.formHeader {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.formHeader h5 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Two-column layout: form left, preview right */
+.formLayout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+/* Left column: form */
+.formColumn {
+  flex: 0 0 60%;
+  max-width: 60%;
+}
+
+/* Right column: preview */
+.previewColumn {
+  flex: 0 0 40%;
+  max-width: 40%;
+}
+
+/* Keep sticky preview behavior */
+.accountPreviewPanel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  position: sticky;
+  top: 20px;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 992px) {
+  .formLayout {
+    flex-direction: column;
+  }
+
+  .formColumn,
+  .previewColumn {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+
+/* Form */
+.userForm .formLabel {
+  color: var(--text-light);
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  display: block;
+}
+
+.formControl {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  color: var(--text-light);
+  padding: 0.65rem 0.85rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.formControl:focus {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: var(--primary-cyan);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+}
+
+.formControl::placeholder {
+  color: var(--text-muted);
+}
+
+/* Form grid */
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.colMd6 {
+  grid-column: span 1;
+}
+
+.col12 {
+  grid-column: span 2;
+}
+
+/* Password input */
+.passwordInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInputWrapper .formControl {
+  padding-right: 2.75rem;
+}
+
+.passwordToggleBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 2.75rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.passwordToggleBtn:hover {
+  color: var(--primary-cyan);
+}
+
+/* Form actions */
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* Buttons */
+.btnPrimary {
+  background: var(--primary-cyan);
+  border: 1px solid var(--primary-cyan);
+  color: #fff;
+  font-weight: 500;
+  transition: all 0.2s;
+  padding: 0.65rem 1.25rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnPrimary:hover {
+  background: #0097a7;
+  border-color: #0097a7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnSecondary {
+  background: rgba(108, 117, 125, 0.2);
+  border: 1px solid var(--border-color);
+  color: var(--text-light);
+  font-weight: 500;
+  transition: all 0.2s;
+  padding: 0.65rem 1.25rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnSecondary:hover {
+  background: rgba(108, 117, 125, 0.3);
+}
+
+/* Preview panel */
+.accountPreviewPanel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  position: sticky;
+  top: 20px;
+}
+
+.previewHeader {
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 1.25rem;
+}
+
+.previewHeader h5 {
+  color: var(--text-light);
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.previewContent {
+  padding: 1.25rem;
+}
+
+.previewItem {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.previewItem:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.previewItem label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+.previewValue {
+  display: inline-block;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.previewValue.hasValue {
+  color: var(--text-light);
+}
+
+.passwordPreview {
+  letter-spacing: 1px;
+  color: var(--text-light);
+}
+
+.previewNote {
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.previewNote i {
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-size: 0.85rem;
+}
+
+.previewNote small {
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-size: 0.75rem;
+}
+
+/* Role badge */
+.roleBadge {
+  padding: 0.25rem 0.7rem;
+  border-radius: 3px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+.roleAdmin {
+  background: rgba(220, 53, 69, 0.15);
+  color: #ff6b7a;
+}
+
+.roleCustomer {
+  background: rgba(13, 202, 240, 0.15);
+  color: #0dcaf0;
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #fff;
+  background: #333;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 11000;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.notificationSuccess {
+  background: #1e4620;
+}
+
+.notificationError {
+  background: #5c1b1b;
+}
+
+.notificationClose {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .colLg7,
+  .colLg5 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .colMd6,
+  .col12 {
+    grid-column: span 1;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .formActions button {
+    width: 100%;
+  }
+}

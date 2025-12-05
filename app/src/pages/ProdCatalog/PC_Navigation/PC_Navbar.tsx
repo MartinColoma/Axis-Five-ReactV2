@@ -4,15 +4,15 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   User, 
   LogOut, 
-  Package, 
-  FileText, 
+  // Package, 
+  // FileText, 
   LayoutDashboard,
   Home,
-  ShoppingBag,
-  ShoppingCart,
-  UserCircle,
-  Users,
-  Settings
+  // ShoppingBag,
+  // ShoppingCart,
+  // UserCircle,
+  // Users,
+  // Settings
 } from 'lucide-react';
 import styles from './PC_Navbar.module.css';
 import LoginPage from '../PC_Auth/PC_LoginReg';
@@ -243,8 +243,8 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                         <span className={styles.userName}>{getDisplayName()}</span>
                         <span className={styles.userRole}> (Customer)</span>
                       </div>
-                      <div className={styles.dropdownDivider}></div>
-                      <button
+                      {/* <div className={styles.dropdownDivider}></div> */}
+                      {/* <button
                         className={styles.dropdownItem}
                         onClick={() => handleAccountNavigation('/product-catalog')}
                       >
@@ -278,8 +278,8 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                       >
                         <UserCircle size={16} />
                         <span>Profile</span>
-                      </button>
-                      <div className={styles.dropdownDivider}></div>
+                      </button> */}
+                      {/* <div className={styles.dropdownDivider}></div> */}
                       <button
                         className={`${styles.dropdownItem} ${styles.logoutItem}`}
                         onClick={handleLogoutClick}
@@ -294,7 +294,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                         <span className={styles.userName}>{getDisplayName()}</span>
                         <span className={styles.userRole}> (Admin)</span>
                       </div>
-                      <div className={styles.dropdownDivider}></div>
+                      {/* <div className={styles.dropdownDivider}></div> */}
                       <button
                         className={styles.dropdownItem}
                         onClick={() => handleAccountNavigation('/product-catalog')}
@@ -309,7 +309,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                         <LayoutDashboard size={16} />
                         <span>Dashboard</span>
                       </button>
-                      <button
+                      {/* <button
                         className={styles.dropdownItem}
                         onClick={() => handleAccountNavigation('/admin/products')}
                       >
@@ -343,7 +343,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                       >
                         <Settings size={16} />
                         <span>Settings</span>
-                      </button>
+                      </button> */}
                       <div className={styles.dropdownDivider}></div>
                       <button
                         className={`${styles.dropdownItem} ${styles.logoutItem}`}

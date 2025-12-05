@@ -31,7 +31,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Auth check - relies on HTTP-Only cookie (primary) + localStorage (backup)
   const checkAuth = useCallback(async (showLoading = true) => {
     if (showLoading) {
       setIsLoading(true);
@@ -39,18 +38,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     try {
       console.log('🔍 Checking auth... (cookie-based)');
-      
-      // Make request - cookie is automatically sent by browser
+
       const response = await fetch(`${API_BASE}/api/auth/verify-token`, {
-        credentials: 'include', // CRITICAL: includes cookies in request
+        credentials: 'include', // ✔ required for cookies
       });
 
       const data = await response.json();
-      
+
       console.log('📥 Auth check result:', {
         success: data.success,
         hasUser: !!data.user,
-        code: data.code
+        code: data.code,
       });
 
       if (data.success && data.user) {
@@ -63,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('❌ No valid session');
         setIsLoggedIn(false);
         setUserData(null);
-        localStorage.removeItem('auth_token'); // Clear backup
+        localStorage.removeItem('auth_token');
         setIsInitialized(true);
         return false;
       }
@@ -81,13 +79,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Initial auth check on mount
   useEffect(() => {
     console.log('🚀 App initialized - checking authentication...');
     checkAuth(true);
   }, [checkAuth]);
 
-  // Periodic session verification (every 5 minutes)
   useEffect(() => {
     if (!isInitialized) return;
 
@@ -99,7 +95,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => clearInterval(intervalId);
   }, [isInitialized, checkAuth]);
 
-  // Check when tab becomes visible
   useEffect(() => {
     if (!isInitialized) return;
 
@@ -111,26 +106,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isInitialized, checkAuth]);
 
-  // Login - cookie is set by server, localStorage is backup only
   const login = useCallback((token: string, user: UserData) => {
     console.log('✅ Login successful:', user.username);
-    // Store in localStorage as backup (cookie is primary)
     localStorage.setItem('auth_token', token);
     setIsLoggedIn(true);
     setUserData(user);
     setIsInitialized(true);
   }, []);
 
-  // Logout
   const logout = useCallback(async () => {
     try {
       console.log('🚪 Logging out...');
       await fetch(`${API_BASE}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include', // Send cookie
+        credentials: 'include', // ✔ needed to clear cookie
       });
     } catch (error) {
       console.error('Logout error:', error);
@@ -142,34 +135,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Manual refresh
   const refreshAuth = useCallback(async () => {
     await checkAuth(true);
   }, [checkAuth]);
 
-  // Loading screen while checking initial auth
   if (!isInitialized) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: '#1f1f1f'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          background: '#1f1f1f',
+        }}
+      >
         <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '50px',
-            height: '50px',
-            border: '4px solid #333',
-            borderTop: '4px solid #00bcd4',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 16px'
-          }}></div>
-          <p style={{ color: '#fff', fontSize: '14px', margin: 0 }}>
-            Loading...
-          </p>
+          <div
+            style={{
+              width: '50px',
+              height: '50px',
+              border: '4px solid #333',
+              borderTop: '4px solid #00bcd4',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px',
+            }}
+          ></div>
+          <p style={{ color: '#fff', fontSize: '14px', margin: 0 }}>Loading...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -182,14 +175,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        isLoggedIn, 
-        isLoading, 
-        userData, 
-        login, 
-        logout, 
-        refreshAuth 
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        isLoading,
+        userData,
+        login,
+        logout,
+        refreshAuth,
       }}
     >
       {children}
