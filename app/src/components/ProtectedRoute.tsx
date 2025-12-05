@@ -34,7 +34,7 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({
   if (!isLoggedIn) {
     return (
       <Navigate 
-        to="/product-catalog" 
+        to="/login" 
         state={{ 
           backgroundLocation: location,
           from: location.pathname 
