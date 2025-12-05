@@ -35,17 +35,6 @@ const AppRoutes: FC = () => {
           } 
         />
 
-        {/* Protected User Routes */}
-        <Route 
-          path="/user/home" 
-          element={
-            <ProtectedRoute requiredRole="customer">
-              {/* Replace with your actual user home component */}
-              <div>User Home - Coming Soon</div>
-            </ProtectedRoute>
-          } 
-        />
-
         {/* Add more protected routes here */}
         {/* Example:
         <Route 
