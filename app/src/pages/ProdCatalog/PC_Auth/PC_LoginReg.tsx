@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, FC } from 'react';
 import axios from 'axios';
 import { X, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import styles from './PC_LoginReg.module.css';
 import usePageMeta from  '../../../hooks/usePageMeta';
+import { useAuth } from '../../../contexts/AuthContext'; // Import auth context
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,7 +25,7 @@ interface FormData {
 type AuthMode = 'login' | 'register';
 type RegisterStep = 1 | 2;
 
-// API Configuration - Set your backend URL here
+// API Configuration
 const API_BASE = import.meta.env.VITE_API_LOCAL_SERVER;
 
 // Create axios instance with default config
@@ -36,7 +38,11 @@ const api = axios.create({
   },
 });
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
+const AuthModal: FC<AuthModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  initialMode = 'login'
+}) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [registerStep, setRegisterStep] = useState<RegisterStep>(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -44,6 +50,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  // Use auth context
+  const { login } = useAuth();
+  
   usePageMeta("AxisFive Store - Account", "/Logos/A5_Logo1.png");
 
   const [formData, setFormData] = useState<FormData>({
@@ -89,32 +100,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
     try {
       const response = await api.post('/api/auth/login', {
-        username: formData.username,
+        emailOrUsername: formData.username,
         password: formData.password,
       });
 
       const { data } = response;
 
-      if (data && data.user) {
+      if (data && data.user && data.token) {
         setSuccess('Login successful!');
         
-        // Store auth token if provided
-        if (data.token) {
-          localStorage.setItem('auth_token', data.token);
-        }
-
+        // Use auth context to handle login (updates global state immediately)
+        login(data.token, data.user);
+        
+        // Close modal and navigate
         setTimeout(() => {
-          if (data.user.role === 'admin') {
-            window.location.href = '/admin/home';
-          } else {
-            window.location.href = '/user/home';
-          }
-        }, 1000);
+          onClose();
+          navigate('/product-catalog', { replace: true });
+        }, 500);
       }
     } catch (err: any) {
       console.error('Login error:', err);
 
-      if (err.response?.status === 401) {
+      if (err.response?.status === 409) {
+        // Active session exists
+        setError('This account is already logged in on another device. Please logout from other sessions first.');
+      } else if (err.response?.status === 401 || err.response?.status === 400) {
         setError('Invalid username or password!');
       } else if (err.code === 'ECONNABORTED') {
         setError('Request timed out. Please check your internet connection.');
@@ -282,14 +292,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 <div>
                   <div className={styles.formGroup}>
                     <label htmlFor="username" className={styles.label}>
-                      Username:
+                      Username or Email:
                     </label>
                     <input
                       type="text"
                       id="username"
                       name="username"
                       className={styles.input}
-                      placeholder="Enter your username"
+                      placeholder="Enter your username or email"
                       value={formData.username}
                       onChange={handleInputChange}
                       required

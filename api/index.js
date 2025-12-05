@@ -6,21 +6,26 @@ require("dotenv").config(); // ✅ Load environment variables first
 
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser"); // 🔥 ADD THIS
 const path = require("path");
 
 const app = express();
 
 // =========================================
-// 🔹 Middleware
+// 🔹 Middleware (ORDER MATTERS!)
 // =========================================
 app.use(express.json());
+
+// 🔥 ADD cookie-parser BEFORE routes
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "https://axis-five-solution.onrender.com",
     ],
-    credentials: true,
+    credentials: true, // ✅ Already correct - needed for cookies
   })
 );
 

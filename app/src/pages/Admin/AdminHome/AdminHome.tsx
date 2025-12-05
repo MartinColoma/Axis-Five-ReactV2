@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
 import styles from './AdminHome.module.css';
+import Navbar from '../../ProdCatalog/PC_Navigation/PC_Navbar'; // Import Navbar
+import Footer from '../../Landing/Navigation/Footer'; // Import Footer
 
 interface User {
   user_id: string;
@@ -18,6 +21,9 @@ type SortDirection = 'asc' | 'desc';
 type ActiveTab = 'overview' | 'create-account';
 
 const AdminHome = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,9 +60,46 @@ const AdminHome = () => {
   const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Scroll handling (same pattern as PC_Home)
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          const navbarHeight = 70;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [location]);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 70;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    } else {
+      navigate('/', { state: { scrollTo: sectionId } });
+    }
+  };
+
   // Mock data - replace with actual API calls
   useEffect(() => {
-    // Simulate fetching users
     const mockUsers: User[] = [
       {
         user_id: 'ADM-00001',
@@ -100,7 +143,6 @@ const AdminHome = () => {
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.first_name || !formData.last_name || !formData.email || !formData.username || !formData.password) {
       showNotification('error', 'All fields are required!');
       return;
@@ -111,7 +153,6 @@ const AdminHome = () => {
       return;
     }
 
-    // Mock API call
     const newUser: User = {
       user_id: formData.role === 'admin' ? `ADM-${String(users.length + 1).padStart(5, '0')}` : `CST-${String(users.length + 1).padStart(5, '0')}`,
       full_name: `${formData.first_name} ${formData.last_name}`,
@@ -157,7 +198,6 @@ const AdminHome = () => {
       return;
     }
 
-    // Mock API call
     setUsers(users.map(user => 
       user.user_id === editFormData.user_id 
         ? {
@@ -240,27 +280,9 @@ const AdminHome = () => {
   };
 
   return (
-    <div className={styles.adminContainer}>
-      {/* Navbar */}
-      <nav className={styles.navbar}>
-        <div className={styles.container}>
-          <a href="#" className={styles.navbarBrand}>
-            <h1>
-              <span className={styles.axis}>Axis</span>
-              <span className={styles.five}>Five Admin</span>
-            </h1>
-          </a>
-          <div className={styles.navbarNav}>
-            <span className={styles.navLink}>
-              <i className="fas fa-user-shield"></i>
-              Welcome, Admin
-            </span>
-            <a href="#" className={styles.logoutBtn}>
-              <i className="fas fa-sign-out-alt"></i>Logout
-            </a>
-          </div>
-        </div>
-      </nav>
+    <div className={styles.page}>
+      {/* Navbar - Same as PC_Home */}
+      <Navbar />
 
       {/* Dashboard Section */}
       <section className={styles.sectionPadding}>
@@ -736,15 +758,10 @@ const AdminHome = () => {
         </div>
       )}
 
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.container}>
-          <hr />
-          <p>&copy; 2025 Axis Five Solutions | Admin Panel | All Rights Reserved</p>
-        </div>
-      </footer>
+      {/* Footer - Same as PC_Home */}
+      <Footer onScrollToSection={scrollToSection} />
     </div>
   );
 };
 
-export default AdminHome;
+export default AdminHome

@@ -1,3 +1,8 @@
+/* ======================================
+   COMPLETE PC_Navbar.module.css
+   Copy and replace your entire file
+   ====================================== */
+
 /* Navbar Base Styles */
 .navbar {
   position: fixed;
@@ -107,7 +112,51 @@
   gap: 1rem;
 }
 
-/* Account Dropdown */
+/* Auth Buttons (Login/Register) - NOT logged in */
+.authButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btnLogin,
+.btnRegister {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btnLogin {
+  background: transparent;
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btnLogin:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #00bcd4;
+  color: #00bcd4;
+  transform: translateY(-2px);
+}
+
+.btnRegister {
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.btnRegister:hover {
+  background: linear-gradient(135deg, #00acc1 0%, #00838f 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.4);
+}
+
+/* Account Dropdown - Logged in only */
 .accountDropdown {
   position: relative;
 }
@@ -169,6 +218,12 @@
   color: #00bcd4;
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.userRole {
+  color: #999;
+  font-size: 0.85rem;
+  font-weight: 400;
 }
 
 .dropdownDivider {
@@ -282,6 +337,153 @@
   background-color: #00bcd4;
 }
 
+/* Logout Confirmation Modal */
+.logoutModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.logoutModalContent {
+  background: rgba(31, 31, 31, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logoutModalHeader {
+  padding: 2rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logoutIcon {
+  color: #f44336;
+  margin-bottom: 1rem;
+}
+
+.logoutModalHeader h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.logoutModalBody {
+  padding: 2rem;
+  text-align: center;
+}
+
+.logoutModalBody p {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #e0e0e0;
+}
+
+.logoutSubtext {
+  font-size: 0.9rem !important;
+  color: #999 !important;
+}
+
+.logoutModalFooter {
+  padding: 1.5rem 2rem;
+  display: flex;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.btnCancel,
+.btnLogout {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btnCancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btnCancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btnLogout {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: #fff;
+}
+
+.btnLogout:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.btnLogout:disabled,
+.btnCancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 991px) {
   .navbarToggler {
@@ -335,6 +537,16 @@
     font-size: 1.5rem;
   }
 
+  .authButtons {
+    gap: 0.5rem;
+  }
+
+  .btnLogin,
+  .btnRegister {
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+  }
+
   .accountBtn {
     width: 36px;
     height: 36px;
@@ -354,5 +566,36 @@
   .dropdownItem {
     padding: 0.65rem 0.85rem;
     font-size: 0.9rem;
+  }
+
+  .logoutModalContent {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .logoutModalHeader {
+    padding: 1.5rem;
+  }
+
+  .logoutModalHeader h3 {
+    font-size: 1.3rem;
+  }
+
+  .logoutModalBody {
+    padding: 1.5rem;
+  }
+
+  .logoutModalBody p {
+    font-size: 1rem;
+  }
+
+  .logoutModalFooter {
+    flex-direction: column;
+    padding: 1rem 1.5rem;
+  }
+
+  .btnCancel,
+  .btnLogout {
+    width: 100%;
   }
 }

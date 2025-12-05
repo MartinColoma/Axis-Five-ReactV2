@@ -6,9 +6,6 @@ const { createClient } = require("@supabase/supabase-js");
 module.exports = function authRoutes(app) {
   const router = express.Router();
 
-  // =========================================
-  // 🔹 Initialize Supabase (Service Role)
-  // =========================================
   const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -16,19 +13,23 @@ module.exports = function authRoutes(app) {
 
   const JWT_SECRET = process.env.JWT_SECRET;
 
-  // =========================================
-  // 🔹 CORS Headers for this router
-  // =========================================
+  // Cookie configuration
+  const COOKIE_OPTIONS = {
+    httpOnly: true,        // Can't be accessed by JavaScript (XSS protection)
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    sameSite: 'lax',      // CSRF protection
+    maxAge: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
+    path: '/'             // Available for all routes
+  };
+
   router.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true"); // IMPORTANT for cookies
     if (req.method === "OPTIONS") return res.sendStatus(200);
     next();
   });
 
-  // =========================================
-  // 🔹 Helper: Generate user_id
-  // =========================================
   async function generateUserId(role) {
     const { data, error } = await supabase
       .from("users")
@@ -38,6 +39,10 @@ module.exports = function authRoutes(app) {
     const nextId = (data?.length || 0) + 1;
     const prefix = role === "admin" ? "ADM" : "CST";
     return `${prefix}-${String(nextId).padStart(5, "0")}`;
+  }
+
+  function generateSessionToken() {
+    return require('crypto').randomBytes(32).toString('hex');
   }
 
   // =========================================
@@ -51,13 +56,11 @@ module.exports = function authRoutes(app) {
         return res.status(400).json({ success: false, message: "Missing required fields." });
       }
 
-      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         return res.status(400).json({ success: false, message: "Invalid email format." });
       }
 
-      // Check if email or username already exists
       const { data: existingUser, error: checkError } = await supabase
         .from("users")
         .select("*")
@@ -68,13 +71,9 @@ module.exports = function authRoutes(app) {
         return res.status(400).json({ success: false, message: "Email or username already exists." });
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Generate user_id
       const user_id = await generateUserId("customer");
 
-      // Insert new user
       const { data, error } = await supabase
         .from("users")
         .insert([
@@ -115,7 +114,7 @@ module.exports = function authRoutes(app) {
   });
 
   // =========================================
-  // 🔹 POST /login
+  // 🔹 POST /login (with HTTP-Only Cookie)
   // =========================================
   router.post("/login", async (req, res) => {
     try {
@@ -125,7 +124,6 @@ module.exports = function authRoutes(app) {
         return res.status(400).json({ success: false, message: "Email/Username and password are required." });
       }
 
-      // Find user by email or username
       const { data: user, error } = await supabase
         .from("users")
         .select("*")
@@ -136,17 +134,43 @@ module.exports = function authRoutes(app) {
         return res.status(400).json({ success: false, message: "Invalid credentials." });
       }
 
-      // Compare password
       const match = await bcrypt.compare(password, user.password);
       if (!match) return res.status(400).json({ success: false, message: "Invalid credentials." });
 
-      // Update last_login
+      // Check for active session
+      const { data: existingSession } = await supabase
+        .from("user_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (existingSession) {
+        return res.status(409).json({ 
+          success: false, 
+          message: "Account is already logged in on another device. Please logout from other sessions first.",
+          code: "ACTIVE_SESSION_EXISTS"
+        });
+      }
+
+      const sessionToken = generateSessionToken();
+      const sessionExpiry = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
+      await supabase
+        .from("user_sessions")
+        .insert([{
+          user_id: user.id,
+          session_token: sessionToken,
+          expires_at: sessionExpiry.toISOString(),
+          is_active: true,
+          last_activity: new Date().toISOString()
+        }]);
+
       await supabase
         .from("users")
         .update({ last_login: new Date() })
         .eq("id", user.id);
 
-      // Issue JWT
       const token = jwt.sign(
         {
           id: user.id,
@@ -156,15 +180,19 @@ module.exports = function authRoutes(app) {
           email: user.email,
           username: user.username,
           role: user.role,
+          session_token: sessionToken
         },
         JWT_SECRET,
         { expiresIn: "2h" }
       );
 
+      // 🔥 SET HTTP-ONLY COOKIE (Primary storage)
+      res.cookie('auth_token', token, COOKIE_OPTIONS);
+
       return res.status(200).json({
         success: true,
         message: "Login successful.",
-        token,
+        token, // Still send token for localStorage backup
         user: {
           id: user.id,
           user_id: user.user_id,
@@ -182,24 +210,81 @@ module.exports = function authRoutes(app) {
   });
 
   // =========================================
-  // 🔹 GET /verify-token
+  // 🔹 POST /logout
   // =========================================
-  router.get("/verify-token", (req, res) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ success: false, message: "Missing token." });
-
-    const token = authHeader.split(" ")[1];
-
+  router.post("/logout", async (req, res) => {
     try {
+      // Try to get token from cookie first, then Authorization header
+      const token = req.cookies?.auth_token || req.headers.authorization?.split(" ")[1];
+      
+      if (!token) {
+        return res.status(401).json({ success: false, message: "Missing token." });
+      }
+
       const decoded = jwt.verify(token, JWT_SECRET);
-      return res.status(200).json({ success: true, user: decoded });
+
+      await supabase
+        .from("user_sessions")
+        .update({ is_active: false })
+        .eq("user_id", decoded.id)
+        .eq("session_token", decoded.session_token);
+
+      // Clear the cookie
+      res.clearCookie('auth_token', { path: '/' });
+
+      return res.status(200).json({ success: true, message: "Logout successful." });
     } catch (err) {
-      return res.status(401).json({ success: false, message: "Invalid or expired token." });
+      console.error("❌ Logout Error:", err);
+      return res.status(500).json({ success: false, message: "Internal server error." });
     }
   });
 
   // =========================================
-  // 🔹 Mount router
+  // 🔹 GET /verify-token (Check cookie first)
   // =========================================
+  router.get("/verify-token", async (req, res) => {
+    // Try cookie first (primary), then Authorization header (fallback)
+    const token = req.cookies?.auth_token || req.headers.authorization?.split(" ")[1];
+    
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Missing token." });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+
+      const { data: session } = await supabase
+        .from("user_sessions")
+        .select("*")
+        .eq("user_id", decoded.id)
+        .eq("session_token", decoded.session_token)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!session) {
+        res.clearCookie('auth_token', { path: '/' });
+        return res.status(401).json({ 
+          success: false, 
+          message: "Session expired or invalid.",
+          code: "SESSION_INVALID"
+        });
+      }
+
+      await supabase
+        .from("user_sessions")
+        .update({ last_activity: new Date().toISOString() })
+        .eq("user_id", decoded.id)
+        .eq("session_token", decoded.session_token);
+
+      // Refresh cookie expiration
+      res.cookie('auth_token', token, COOKIE_OPTIONS);
+
+      return res.status(200).json({ success: true, user: decoded });
+    } catch (err) {
+      res.clearCookie('auth_token', { path: '/' });
+      return res.status(401).json({ success: false, message: "Invalid or expired token." });
+    }
+  });
+
   app.use("/api/auth", router);
 };

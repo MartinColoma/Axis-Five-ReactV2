@@ -1,92 +1,60 @@
-import React, { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import { Navigate, useLocation } from 'react-router-dom';
+import type { FC, ReactNode } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  allowedUserTypes?: string[];
-  allowedRoles?: string[];
+  children: ReactNode;
+  requiredRole?: 'admin' | 'customer';
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  allowedUserTypes,
-  allowedRoles,
+const ProtectedRoute: FC<ProtectedRouteProps> = ({ 
+  children, 
+  requiredRole 
 }) => {
-  const [isValidating, setIsValidating] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isLoggedIn, isLoading, userData } = useAuth();
   const location = useLocation();
 
-  useEffect(() => {
-    const validateToken = async () => {
-      const token = localStorage.getItem("auth_token");
-
-      if (!token) {
-        setIsAuthenticated(false);
-        setIsValidating(false);
-        return;
-      }
-
-      try {
-        const response = await axios.post(
-          "http://localhost:10000/api/auth/verify-token",
-          { token },
-          { withCredentials: true }
-        );
-
-        if (response.data.valid) {
-          const { user } = response.data;
-
-          // Check user type permission
-          if (allowedUserTypes && !allowedUserTypes.includes(user.userType)) {
-            setIsAuthenticated(false);
-            setIsValidating(false);
-            return;
-          }
-
-          // Check role permission
-          if (allowedRoles && !allowedRoles.includes(user.role)) {
-            setIsAuthenticated(false);
-            setIsValidating(false);
-            return;
-          }
-
-          setIsAuthenticated(true);
-        } else {
-          localStorage.removeItem("auth_token");
-          sessionStorage.clear();
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error("Token validation error:", error);
-        localStorage.removeItem("auth_token");
-        sessionStorage.clear();
-        setIsAuthenticated(false);
-      } finally {
-        setIsValidating(false);
-      }
-    };
-
-    validateToken();
-  }, [allowedUserTypes, allowedRoles]);
-
-  if (isValidating) {
+  // Loading state - show while checking authentication
+  if (isLoading) {
     return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
-        height: "100vh" 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
       }}>
-        <p>Validating session...</p>
+        Verifying authentication...
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" state={{ from: location }} replace />;
+  // Not authenticated - redirect to login with return URL
+  if (!isLoggedIn) {
+    return (
+      <Navigate 
+        to="/login" 
+        state={{ 
+          backgroundLocation: location,
+          from: location.pathname 
+        }} 
+        replace 
+      />
+    );
   }
 
+  // Check role if required
+  if (requiredRole && userData?.role !== requiredRole) {
+    // Redirect based on user's actual role
+    if (userData?.role === 'admin') {
+      return <Navigate to="/admin/home" replace />;
+    } else {
+      return <Navigate to="/user/home" replace />;
+    }
+  }
+
+  // Authenticated and authorized
   return <>{children}</>;
 };
 

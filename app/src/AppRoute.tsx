@@ -1,12 +1,15 @@
-import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import type { FC } from 'react';
+import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Landing/Home/Home';
 import About from './pages/Landing/About/About';
 import ProdCatalog from './pages/ProdCatalog/PC_Home/PC_Home';
 import AuthModal from './pages/ProdCatalog/PC_Auth/PC_LoginReg';
+import AdminHome from './pages/Admin/AdminHome/AdminHome';
+import ProtectedRoute from './components/ProtectedRoute';
 
-const AppRoutes: React.FC = () => {
+const AppRoutes: FC = () => {
   const location = useLocation();
 
   // Handle modal background state (for modal routing)
@@ -17,12 +20,43 @@ const AppRoutes: React.FC = () => {
     <>
       {/* Base routes */}
       <Routes location={background || location}>
-        {/* AxisFive Company Pages */}
+        {/* AxisFive Company Pages - Public */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/product-catalog" element={<ProdCatalog />} />
 
-        {/* Add more routes here */}
+        {/* Protected Admin Routes */}
+        <Route 
+          path="/admin/home" 
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminHome />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Protected User Routes */}
+        <Route 
+          path="/user/home" 
+          element={
+            <ProtectedRoute requiredRole="customer">
+              {/* Replace with your actual user home component */}
+              <div>User Home - Coming Soon</div>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Add more protected routes here */}
+        {/* Example:
+        <Route 
+          path="/admin/products" 
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminProducts />
+            </ProtectedRoute>
+          } 
+        />
+        */}
       </Routes>
 
       {/* Modal routes (rendered as portals on top of background) */}
@@ -61,4 +95,13 @@ const AppRoutes: React.FC = () => {
   );
 };
 
-export default AppRoutes;
+// Wrap the entire app routes with AuthProvider
+const AppRoutesWithAuth: FC = () => {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
+};
+
+export default AppRoutesWithAuth;
