@@ -3,7 +3,6 @@ import type { FC } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   User, 
-  LogOut, 
   // Package, 
   // FileText, 
   LayoutDashboard,
@@ -187,6 +186,13 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
           <div className={styles.navbarActions}>
             {/* Show cart for customers or non-logged in users */}
             {(!isLoggedIn || userData?.role === 'customer') && (
+            <>
+              <button
+                className={styles.dropdownItem}
+                onClick={() => handleAccountNavigation('/')}
+              >
+                <Home size={24} />
+              </button>
               <button 
                 className={styles.cartBtn}
                 onClick={handleCartClick}
@@ -211,6 +217,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                   <span className={styles.cartBadge}>{cartItemCount}</span>
                 )}
               </button>
+            </>  
             )}
 
             {/* Show Login/Register buttons when NOT logged in */}
@@ -284,7 +291,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                         className={`${styles.dropdownItem} ${styles.logoutItem}`}
                         onClick={handleLogoutClick}
                       >
-                        <LogOut size={16} />
                         <span>Logout</span>
                       </button>
                     </>
@@ -349,7 +355,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                         className={`${styles.dropdownItem} ${styles.logoutItem}`}
                         onClick={handleLogoutClick}
                       >
-                        <LogOut size={16} />
                         <span>Logout</span>
                       </button>
                     </>
@@ -403,7 +408,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                   </>
                 ) : (
                   <>
-                    <LogOut size={18} />
                     Logout
                   </>
                 )}

@@ -120,11 +120,7 @@ const AuthModal: FC<AuthModalProps> = ({
       }
     } catch (err: any) {
       console.error('Login error:', err);
-
-      if (err.response?.status === 409) {
-        // Active session exists
-        setError('This account is already logged in on another device. Please logout from other sessions first.');
-      } else if (err.response?.status === 401 || err.response?.status === 400) {
+      if (err.response?.status === 401 || err.response?.status === 400) {
         setError('Invalid username or password!');
       } else if (err.code === 'ECONNABORTED') {
         setError('Request timed out. Please check your internet connection.');
