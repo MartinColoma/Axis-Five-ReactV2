@@ -58,6 +58,7 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // =========================================
 const contact_us = require("./routes/landing/contact-us");
 const auth = require("./routes/auth/auth");
+const prod_catalog = require('./routes/prod-catalog/product-catalog')
 const adminUser = require('./routes/admin/users/users')
 const adminProduct = require('./routes/admin/products/products')
 
@@ -83,12 +84,20 @@ app.get("/api/health", (req, res) => {
 console.log("\n🔧 Mounting routes...");
 contact_us(app);
 console.log("✅ Contact Us route mounted");
+// 🔹 Login/Register Routes
 auth(app);
 console.log("✅ Auth route mounted");
+// 🔹 Product-Catalog Routes
+prod_catalog(app);
+console.log("✅ Product-Catalog route mounted");
+
+// 🔹 Admin Routes
 adminUser(app);
 console.log("✅ Admin User route mounted");
 adminProduct(app);
 console.log("✅ Admin Product route mounted");
+// 🔹 User Routes
+// Insert here if needed
 // =========================================
 // 🔹 ROUTE DEBUGGER - Print All Registered Routes
 // =========================================

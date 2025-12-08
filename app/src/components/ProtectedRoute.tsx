@@ -1,3 +1,4 @@
+// ProtectedRoute.tsx
 import { Navigate, useLocation } from 'react-router-dom';
 import type { FC, ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,7 +15,6 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({
   const { isLoggedIn, isLoading, userData } = useAuth();
   const location = useLocation();
 
-  // Loading state - show while checking authentication
   if (isLoading) {
     return (
       <div style={{
@@ -30,13 +30,18 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Not authenticated - redirect to login with return URL
+  // Not authenticated - redirect to login with a SAFE background
   if (!isLoggedIn) {
+    const isAdminPath = location.pathname.startsWith('/admin');
+    const backgroundLocation = isAdminPath
+      ? { pathname: '/product-catalog' } // avoid looping back into admin
+      : location;
+
     return (
       <Navigate 
         to="/login" 
         state={{ 
-          backgroundLocation: location,
+          backgroundLocation,
           from: location.pathname 
         }} 
         replace 
@@ -46,7 +51,6 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({
 
   // Check role if required
   if (requiredRole && userData?.role !== requiredRole) {
-    // Redirect based on user's actual role
     if (userData?.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
     } else {
@@ -54,7 +58,6 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({
     }
   }
 
-  // Authenticated and authorized
   return <>{children}</>;
 };
 

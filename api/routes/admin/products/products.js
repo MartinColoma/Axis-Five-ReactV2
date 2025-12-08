@@ -1,5 +1,5 @@
 // =========================================
-// routes/admin/dashboard.js
+// routes/admin/products/products.js
 // =========================================
 
 const express = require("express");

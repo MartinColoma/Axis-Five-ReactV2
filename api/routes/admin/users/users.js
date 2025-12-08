@@ -1,5 +1,5 @@
 // =========================================
-// routes/admin/users.js
+// routes/admin/users/users.js
 // =========================================
 
 const express = require("express");
