@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import styles from './AdminOverview.module.css';
+import styles from './Overview.module.css';
 
 interface User {
   user_id: string;
@@ -13,53 +13,23 @@ interface User {
   created_at: string;
 }
 
-interface Product {
-  id: number;
-  sku: string;
-  name: string;
-  category: string | null;
-  pricing_model: 'one_time_hardware' | 'hardware_plus_subscription' | 'subscription_only';
-  stock_quantity: number;
-  stock_status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'made_to_order';
-  requires_subscription: boolean;
-  is_iot_connected: boolean;
-  created_at: string;
-}
-
-type UserSortColumn = 'user_id' | 'full_name' | 'email' | 'role' | 'status' | 'created_at';
-type ProductSortColumn =
-  | 'sku'
-  | 'name'
-  | 'category'
-  | 'pricing_model'
-  | 'stock_quantity'
-  | 'stock_status'
-  | 'created_at';
+type SortColumn = 'user_id' | 'full_name' | 'email' | 'role' | 'status' | 'created_at';
 type SortDirection = 'asc' | 'desc';
 
 const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 const AdminOverview: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-
   const [loading, setLoading] = useState(false);
-
-  const [userSearchTerm, setUserSearchTerm] = useState('');
-  const [productSearchTerm, setProductSearchTerm] = useState('');
-
-  const [userSortColumn, setUserSortColumn] = useState<UserSortColumn | null>(null);
-  const [userSortDirection, setUserSortDirection] = useState<SortDirection>('asc');
-
-  const [productSortColumn, setProductSortColumn] = useState<ProductSortColumn | null>(null);
-  const [productSortDirection, setProductSortDirection] = useState<SortDirection>('asc');
-
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [notification, setNotification] = useState<{
     type: 'success' | 'error';
     message: string;
   } | null>(null);
 
-  // Edit Modal (users)
+  // Edit Modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -73,13 +43,12 @@ const AdminOverview: React.FC = () => {
     password: '',
   });
 
-  // Delete Modal (users)
+  // Delete Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchUsers();
-    fetchProducts();
   }, []);
 
   const showNotification = (type: 'success' | 'error', message: string) => {
@@ -113,32 +82,6 @@ const AdminOverview: React.FC = () => {
     }
   };
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/products`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setProducts(data.products);
-      } else {
-        showNotification('error', data.message || 'Failed to fetch products');
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      showNotification('error', 'Failed to fetch products');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleEditUser = (userId: string) => {
     const user = users.find((u) => u.user_id === userId);
     if (!user) return;
@@ -157,12 +100,7 @@ const AdminOverview: React.FC = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (
-      !editFormData.first_name ||
-      !editFormData.last_name ||
-      !editFormData.email ||
-      !editFormData.username
-    ) {
+    if (!editFormData.first_name || !editFormData.last_name || !editFormData.email || !editFormData.username) {
       showNotification('error', 'All fields except password are required!');
       return;
     }
@@ -174,25 +112,22 @@ const AdminOverview: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/users/${editFormData.user_id}`,
-        {
-          method: 'PUT',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            first_name: editFormData.first_name,
-            last_name: editFormData.last_name,
-            email: editFormData.email,
-            username: editFormData.username,
-            role: editFormData.role,
-            status: editFormData.status,
-            password: editFormData.password || undefined,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${editFormData.user_id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: editFormData.first_name,
+          last_name: editFormData.last_name,
+          email: editFormData.email,
+          username: editFormData.username,
+          role: editFormData.role,
+          status: editFormData.status,
+          password: editFormData.password || undefined,
+        }),
+      });
 
       const data = await response.json();
 
@@ -221,19 +156,16 @@ const AdminOverview: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/users/${userToDelete.id}`,
-        {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            reason: 'Deleted by administrator',
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userToDelete.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason: 'Deleted by administrator',
+        }),
+      });
 
       const data = await response.json();
 
@@ -258,26 +190,17 @@ const AdminOverview: React.FC = () => {
     setEditFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleUserSort = (column: UserSortColumn) => {
-    if (userSortColumn === column) {
-      setUserSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
-      setUserSortColumn(column);
-      setUserSortDirection('asc');
-    }
-  };
-
-  const handleProductSort = (column: ProductSortColumn) => {
-    if (productSortColumn === column) {
-      setProductSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setProductSortColumn(column);
-      setProductSortDirection('asc');
+      setSortColumn(column);
+      setSortDirection('asc');
     }
   };
 
   const filteredAndSortedUsers = useMemo(() => {
-    const search = userSearchTerm.toLowerCase();
+    const search = searchTerm.toLowerCase();
 
     let filtered = users.filter((user) => {
       return (
@@ -287,229 +210,91 @@ const AdminOverview: React.FC = () => {
       );
     });
 
-    if (userSortColumn) {
+    if (sortColumn) {
       filtered = [...filtered].sort((a, b) => {
-        let aValue: any = a[userSortColumn];
-        let bValue: any = b[userSortColumn];
+        let aValue: any = a[sortColumn];
+        let bValue: any = b[sortColumn];
 
-        if (userSortColumn === 'created_at') {
+        if (sortColumn === 'created_at') {
           aValue = new Date(aValue).getTime();
           bValue = new Date(bValue).getTime();
         }
 
-        if (aValue < bValue) return userSortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return userSortDirection === 'asc' ? 1 : -1;
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
         return 0;
       });
     }
 
     return filtered;
-  }, [users, userSearchTerm, userSortColumn, userSortDirection]);
-
-  const filteredAndSortedProducts = useMemo(() => {
-    const search = productSearchTerm.toLowerCase();
-
-    let filtered = products.filter((p) => {
-      return (
-        p.name.toLowerCase().includes(search) ||
-        p.sku.toLowerCase().includes(search) ||
-        (p.category || '').toLowerCase().includes(search)
-      );
-    });
-
-    if (productSortColumn) {
-      filtered = [...filtered].sort((a, b) => {
-        let aValue: any = a[productSortColumn];
-        let bValue: any = b[productSortColumn];
-
-        if (productSortColumn === 'created_at') {
-          aValue = new Date(aValue).getTime();
-          bValue = new Date(bValue).getTime();
-        }
-
-        if (aValue < bValue) return productSortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return productSortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [products, productSearchTerm, productSortColumn, productSortDirection]);
+  }, [users, searchTerm, sortColumn, sortDirection]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const getUserSortIcon = (column: UserSortColumn) => {
-    if (userSortColumn !== column) return 'fa-sort';
-    return userSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
-  };
-
-  const getProductSortIcon = (column: ProductSortColumn) => {
-    if (productSortColumn !== column) return 'fa-sort';
-    return productSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+  const getSortIcon = (column: SortColumn) => {
+    if (sortColumn !== column) return 'fa-sort';
+    return sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
   };
 
   return (
     <>
-      <section className={`${styles.tabPane} ${styles.active}`} aria-label="Overview">
-        {/* PRODUCTS TABLE */}
-        <div className={styles.tableControls}>
-          <div className={styles.tableHeader}>
-            <h5>
-              <i className="fas fa-box" /> Products
-            </h5>
-            <span className={styles.userCount}>
-              {filteredAndSortedProducts.length} Total Products
-            </span>
-          </div>
+      <section className={`${styles.tabPane} ${styles.active}`} aria-label="All users">
+      <div className={styles.tableControls}>
+        <div className={styles.tableHeader}>
+          <h5>
+            <i className="fas fa-users" /> All Users
+          </h5>
+          <span className={styles.userCount}>{filteredAndSortedUsers.length} Total Users</span>
+        </div>
 
-          <div className={styles.searchBarWrapper}>
-            <div className={styles.searchBar}>
-              <i className="fas fa-search" />
-              <input
-                type="text"
-                placeholder="Search products by name, SKU, or category..."
-                value={productSearchTerm}
-                onChange={(e) => setProductSearchTerm(e.target.value)}
-                aria-label="Search products"
-              />
-              {productSearchTerm && (
-                <button
-                  type="button"
-                  className={styles.clearSearch}
-                  onClick={() => setProductSearchTerm('')}
-                  aria-label="Clear product search"
-                >
-                  <i className="fas fa-times" />
-                </button>
-              )}
-            </div>
+        <div className={styles.searchBarWrapper}>
+          <div className={styles.searchBar}>
+            <i className="fas fa-search" />
+            <input
+              type="text"
+              placeholder="Search by name, email, or role..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search users"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                className={styles.clearSearch}
+                onClick={() => setSearchTerm('')}
+                aria-label="Clear search"
+              >
+                <i className="fas fa-times" />
+              </button>
+            )}
           </div>
         </div>
+      </div>
 
         <div className={styles.tableResponsive}>
           <table className={styles.usersTable}>
             <thead>
               <tr>
-                <th onClick={() => handleProductSort('sku')}>
-                  SKU <i className={`fas ${getProductSortIcon('sku')} ${styles.sortIcon}`} />
+                <th onClick={() => handleSort('user_id')}>
+                  User ID <i className={`fas ${getSortIcon('user_id')} ${styles.sortIcon}`} />
                 </th>
-                <th onClick={() => handleProductSort('name')}>
-                  Product Name{' '}
-                  <i className={`fas ${getProductSortIcon('name')} ${styles.sortIcon}`} />
+                <th onClick={() => handleSort('full_name')}>
+                  Full Name <i className={`fas ${getSortIcon('full_name')} ${styles.sortIcon}`} />
                 </th>
-                <th onClick={() => handleProductSort('category')}>
-                  Category{' '}
-                  <i className={`fas ${getProductSortIcon('category')} ${styles.sortIcon}`} />
+                <th onClick={() => handleSort('email')}>
+                  Email <i className={`fas ${getSortIcon('email')} ${styles.sortIcon}`} />
                 </th>
-                <th onClick={() => handleProductSort('pricing_model')}>
-                  Pricing Model{' '}
-                  <i
-                    className={`fas ${getProductSortIcon('pricing_model')} ${styles.sortIcon}`}
-                  />
+                <th onClick={() => handleSort('role')}>
+                  Role <i className={`fas ${getSortIcon('role')} ${styles.sortIcon}`} />
                 </th>
-                <th onClick={() => handleProductSort('stock_quantity')}>
-                  Stock{' '}
-                  <i
-                    className={`fas ${getProductSortIcon('stock_quantity')} ${styles.sortIcon}`}
-                  />
+                <th onClick={() => handleSort('status')}>
+                  Status <i className={`fas ${getSortIcon('status')} ${styles.sortIcon}`} />
                 </th>
-                <th onClick={() => handleProductSort('stock_status')}>
-                  Stock Status{' '}
-                  <i
-                    className={`fas ${getProductSortIcon('stock_status')} ${styles.sortIcon}`}
-                  />
-                </th>
-                <th onClick={() => handleProductSort('created_at')}>
-                  Created At{' '}
-                  <i
-                    className={`fas ${getProductSortIcon('created_at')} ${styles.sortIcon}`}
-                  />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAndSortedProducts.length === 0 ? (
-                <tr className={styles.noResults}>
-                  <td colSpan={7}>No products found</td>
-                </tr>
-              ) : (
-                filteredAndSortedProducts.map((p) => (
-                  <tr key={p.id}>
-                    <td>
-                      <span className={styles.userIdBadge}>{p.sku}</span>
-                    </td>
-                    <td>{p.name}</td>
-                    <td>{p.category || '-'}</td>
-                    <td>{p.pricing_model.replace(/_/g, ' ')}</td>
-                    <td>{p.stock_quantity}</td>
-                    <td>{p.stock_status.replace(/_/g, ' ')}</td>
-                    <td>{formatDate(p.created_at)}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* USERS TABLE (unchanged UI) */}
-        <div className={styles.tableControls}>
-          <div className={styles.tableHeader}>
-            <h5>
-              <i className="fas fa-users" /> All Users
-            </h5>
-            <span className={styles.userCount}>{filteredAndSortedUsers.length} Total Users</span>
-          </div>
-
-          <div className={styles.searchBarWrapper}>
-            <div className={styles.searchBar}>
-              <i className="fas fa-search" />
-              <input
-                type="text"
-                placeholder="Search by name, email, or role..."
-                value={userSearchTerm}
-                onChange={(e) => setUserSearchTerm(e.target.value)}
-                aria-label="Search users"
-              />
-              {userSearchTerm && (
-                <button
-                  type="button"
-                  className={styles.clearSearch}
-                  onClick={() => setUserSearchTerm('')}
-                  aria-label="Clear search"
-                >
-                  <i className="fas fa-times" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.tableResponsive}>
-          <table className={styles.usersTable}>
-            <thead>
-              <tr>
-                <th onClick={() => handleUserSort('user_id')}>
-                  User ID <i className={`fas ${getUserSortIcon('user_id')} ${styles.sortIcon}`} />
-                </th>
-                <th onClick={() => handleUserSort('full_name')}>
-                  Full Name{' '}
-                  <i className={`fas ${getUserSortIcon('full_name')} ${styles.sortIcon}`} />
-                </th>
-                <th onClick={() => handleUserSort('email')}>
-                  Email <i className={`fas ${getUserSortIcon('email')} ${styles.sortIcon}`} />
-                </th>
-                <th onClick={() => handleUserSort('role')}>
-                  Role <i className={`fas ${getUserSortIcon('role')} ${styles.sortIcon}`} />
-                </th>
-                <th onClick={() => handleUserSort('status')}>
-                  Status <i className={`fas ${getUserSortIcon('status')} ${styles.sortIcon}`} />
-                </th>
-                <th onClick={() => handleUserSort('created_at')}>
-                  Created At{' '}
-                  <i className={`fas ${getUserSortIcon('created_at')} ${styles.sortIcon}`} />
+                <th onClick={() => handleSort('created_at')}>
+                  Created At <i className={`fas ${getSortIcon('created_at')} ${styles.sortIcon}`} />
                 </th>
                 <th>Actions</th>
               </tr>
@@ -580,7 +365,6 @@ const AdminOverview: React.FC = () => {
         </div>
       </section>
 
-      {/* Edit Modal */}
       {showEditModal && (
         <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
           <div className={styles.modalDialog} onClick={(e) => e.stopPropagation()}>
@@ -727,7 +511,6 @@ const AdminOverview: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Modal */}
       {showDeleteModal && (
         <div className={styles.modalOverlay} onClick={() => setShowDeleteModal(false)}>
           <div className={styles.modalDialog} onClick={(e) => e.stopPropagation()}>
@@ -750,8 +533,7 @@ const AdminOverview: React.FC = () => {
                 <div className={styles.userInfoBox}>
                   <strong>{userToDelete?.name}</strong>
                   <p className={styles.textMuted}>
-                    This will move the user to the archive. The user can be restored later if
-                    needed.
+                    This will move the user to the archive. The user can be restored later if needed.
                   </p>
                 </div>
               </div>
@@ -777,7 +559,6 @@ const AdminOverview: React.FC = () => {
         </div>
       )}
 
-      {/* Notification */}
       {notification && (
         <div
           className={`${styles.notification} ${

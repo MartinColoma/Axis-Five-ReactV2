@@ -2,12 +2,20 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import type { FC } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+
+//Landing Page
 import Home from './pages/Landing/Home/Home';
 import About from './pages/Landing/About/About';
+//Product Catalog
 import ProdCatalog from './pages/ProdCatalog/PC_Home/PC_Home';
 import AuthModal from './pages/ProdCatalog/PC_Auth/PC_LoginReg';
+//User Pages
+
+//Admin Pages
 import AdminHome from './pages/Admin/AdminHome/AdminHome';
-import ProtectedRoute from './components/ProtectedRoute';
+import AdminUsers from './pages/Admin/AdminUsers/AdminUser';
+import AdminProd from './pages/Admin/AdminProducts/AdminProd';
 
 const AppRoutes: FC = () => {
   const location = useLocation();
@@ -34,18 +42,22 @@ const AppRoutes: FC = () => {
             </ProtectedRoute>
           } 
         />
-
-        {/* Add more protected routes here */}
-        {/* Example:
+        <Route 
+          path="/admin/user-mngt" 
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminUsers />
+            </ProtectedRoute>
+          } 
+        />
         <Route 
           path="/admin/products" 
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminProducts />
+              <AdminProd />
             </ProtectedRoute>
           } 
         />
-        */}
       </Routes>
 
       {/* Modal routes (rendered as portals on top of background) */}

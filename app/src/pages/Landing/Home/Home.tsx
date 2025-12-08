@@ -10,7 +10,7 @@ const Home: React.FC = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeAboutSlide, setActiveAboutSlide] = useState(0);
   const location = useLocation();
-  usePageMeta("AxisFive Solution", "/Logos/A5_Logo1.png");
+  usePageMeta("AxisFive Solution", "/images/Logos/A5_Logo1.png");
 
   const heroSlides = [
     '/images/Home/H1.png',

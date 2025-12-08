@@ -2,17 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
-  User, 
-  // Package, 
-  // FileText, 
+  User,
   LayoutDashboard,
   Home,
-  // ShoppingBag,
-  // ShoppingCart,
-  // UserCircle,
-  // Users,
-  // Settings
-} from 'lucide-react';
+  BookImage,
+  ShoppingCart,
+  ShoppingBag,
+  Package,
+  FileText,
+  Users,
+ // Settings,
+  UserCircle,
+} from 'lucide-react'; // all Lucide icons [web:9][web:22][web:34][web:35][web:27][web:36][web:18]
 import styles from './PC_Navbar.module.css';
 import LoginPage from '../PC_Auth/PC_LoginReg';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -28,16 +29,22 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Account dropdown (user/admin)
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+
+  // Logout modal
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const navbarRef = useRef<HTMLDivElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
+
   const navigate = useNavigate();
   const location = useLocation();
   
   const { isLoggedIn, userData, logout } = useAuth();
-  
+
   const showAuthModal = location.pathname === '/login' || location.pathname === '/register';
   const initialMode = location.pathname === '/register' ? 'register' : 'login';
 
@@ -62,6 +69,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (navbarRef.current && !navbarRef.current.contains(event.target as Node)) {
@@ -78,6 +86,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
     };
   }, [isMobileMenuOpen]);
 
+  // Close account dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
@@ -94,6 +103,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
     };
   }, [isAccountDropdownOpen]);
 
+  // Close mobile menu on desktop resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 991) {
@@ -182,45 +192,31 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
             </h1>
           </Link>
 
-
           <div className={styles.navbarActions}>
-            {/* Show cart for customers or non-logged in users */}
+            {/* HOME ICON: visible for everyone (guest, customer, admin) */}
+            <button
+              className={styles.dropdownItem}
+              onClick={() => handleAccountNavigation('/')}
+              aria-label="Home"
+            >
+              <Home size={24} />
+            </button>
+
+            {/* CART ICON: only for guests and customers (not admins) */}
             {(!isLoggedIn || userData?.role === 'customer') && (
-            <>
-              <button
-                className={styles.dropdownItem}
-                onClick={() => handleAccountNavigation('/')}
-              >
-                <Home size={24} />
-              </button>
               <button 
                 className={styles.cartBtn}
                 onClick={handleCartClick}
                 aria-label="Shopping cart"
               >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <circle cx="9" cy="21" r="1"></circle>
-                  <circle cx="20" cy="21" r="1"></circle>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
+                <ShoppingCart size={24} />
                 {cartItemCount > 0 && (
                   <span className={styles.cartBadge}>{cartItemCount}</span>
                 )}
               </button>
-            </>  
             )}
 
-            {/* Show Login/Register buttons when NOT logged in */}
+            {/* AUTH BUTTONS (when not logged in) */}
             {!isLoggedIn ? (
               <div className={styles.authButtons}>
                 <button className={styles.btnLogin} onClick={handleLogin}>
@@ -231,8 +227,9 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                 </button>
               </div>
             ) : (
-              /* Show user icon dropdown ONLY when logged in */
+              /* ACCOUNT DROPDOWN (when logged in) */
               <div className={styles.accountDropdown} ref={accountDropdownRef}>
+                {/* User icon that toggles the dropdown */}
                 <button
                   className={styles.accountBtn}
                   onClick={toggleAccountDropdown}
@@ -244,129 +241,118 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
 
                 {isAccountDropdownOpen && (
                   <div className={styles.dropdownMenu}>
+                    {/* CUSTOMER DROPDOWN (userData.role === 'customer') */}
                     {userData?.role === 'customer' ? (
-                    <>
-                      <div className={styles.dropdownHeader}>
-                        <span className={styles.userName}>{getDisplayName()}</span>
-                        <span className={styles.userRole}> (Customer)</span>
-                      </div>
-                      {/* <div className={styles.dropdownDivider}></div> */}
-                      {/* <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/product-catalog')}
-                      >
-                        <Home size={16} />
-                        <span>Home</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/product-catalog')}
-                      >
-                        <ShoppingBag size={16} />
-                        <span>Products</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/user/cart')}
-                      >
-                        <ShoppingCart size={16} />
-                        <span>Cart</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/user/orders')}
-                      >
-                        <Package size={16} />
-                        <span>Orders</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/user/profile')}
-                      >
-                        <UserCircle size={16} />
-                        <span>Profile</span>
-                      </button> */}
-                      {/* <div className={styles.dropdownDivider}></div> */}
-                      <button
-                        className={`${styles.dropdownItem} ${styles.logoutItem}`}
-                        onClick={handleLogoutClick}
-                      >
-                        <span>Logout</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div className={styles.dropdownHeader}>
-                        <span className={styles.userName}>{getDisplayName()}</span>
-                        <span className={styles.userRole}> (Admin)</span>
-                      </div>
-                      {/* <div className={styles.dropdownDivider}></div> */}
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/product-catalog')}
-                      >
-                        <Home size={16} />
-                        <span>Home</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/admin/dashboard')}
-                      >
-                        <LayoutDashboard size={16} />
-                        <span>Dashboard</span>
-                      </button>
-                      {/* <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/admin/products')}
-                      >
-                        <ShoppingBag size={16} />
-                        <span>Products</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/admin/orders')}
-                      >
-                        <Package size={16} />
-                        <span>Orders</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/admin/rfqs')}
-                      >
-                        <FileText size={16} />
-                        <span>RFQs</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/admin/customers')}
-                      >
-                        <Users size={16} />
-                        <span>Customers</span>
-                      </button>
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => handleAccountNavigation('/admin/settings')}
-                      >
-                        <Settings size={16} />
-                        <span>Settings</span>
-                      </button> */}
-                      <div className={styles.dropdownDivider}></div>
-                      <button
-                        className={`${styles.dropdownItem} ${styles.logoutItem}`}
-                        onClick={handleLogoutClick}
-                      >
-                        <span>Logout</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+                      <>
+                        <div className={styles.dropdownHeader}>
+                          <span className={styles.userName}>{getDisplayName()}</span>
+                          <span className={styles.userRole}> (Customer)</span>
+                        </div>
+
+                        {/* RESTORED CUSTOMER BUTTONS (commented, now using Lucide) */}
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/user/orders')}
+                        >
+                          <Package size={16} />
+                          <span>Orders</span>
+                        </button>
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/user/profile')}
+                        >
+                          <UserCircle size={16} />
+                          <span>Profile</span>
+                        </button>
+                       
+
+                        <button
+                          className={`${styles.dropdownItem} ${styles.logoutItem}`}
+                          onClick={handleLogoutClick}
+                        >
+                          <span>Logout</span>
+                        </button>
+                      </>
+                    ) : (
+                      /* ADMIN DROPDOWN (for admin users) */
+                      <>
+                        <div className={styles.dropdownHeader}>
+                          <span className={styles.userName}>{getDisplayName()}</span>
+                          <span className={styles.userRole}> (Admin)</span>
+                        </div>
+
+
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/admin/dashboard')}
+                        >
+                          <LayoutDashboard size={16} />
+                          <span>Dashboard</span>
+                        </button>
+
+                        {/* RESTORED ADMIN BUTTONS (commented, now using Lucide) */}                        
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/product-catalog')}
+                        >
+                          <BookImage size={16} />
+                          <span>Catalog</span>
+                        </button>
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/admin/products')}
+                        >
+                          <ShoppingBag size={16} />
+                          <span>Products</span>
+                        </button>
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/admin/orders')}
+                        >
+                          <Package size={16} />
+                          <span>Orders</span>
+                        </button>
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/admin/rfqs')}
+                        >
+                          <FileText size={16} />
+                          <span>RFQs</span>
+                        </button>
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/admin/user-mngt')}
+                        >
+                          <Users size={16} />
+                          <span>User Management</span>
+                        </button>
+                        {/* <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/admin/settings')}
+                        >
+                          <Settings size={16} />
+                          <span>Settings</span>
+                        </button> */}
+                       
+
+                        <div className={styles.dropdownDivider}></div>
+                        <button
+                          className={`${styles.dropdownItem} ${styles.logoutItem}`}
+                          onClick={handleLogoutClick}
+                        >
+                          <span>Logout</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
       </nav>
 
+      {/* LOGIN / REGISTER MODAL */}
       {showAuthModal && (
         <LoginPage
           isOpen={true}
@@ -375,7 +361,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
         />
       )}
 
-      {/* Logout Confirmation Modal */}
+      {/* LOGOUT CONFIRMATION MODAL */}
       {showLogoutModal && (
         <div className={styles.logoutModalOverlay} onClick={handleCancelLogout}>
           <div className={styles.logoutModalContent} onClick={(e) => e.stopPropagation()}>
@@ -407,9 +393,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                     Logging out...
                   </>
                 ) : (
-                  <>
-                    Logout
-                  </>
+                  <>Logout</>
                 )}
               </button>
             </div>

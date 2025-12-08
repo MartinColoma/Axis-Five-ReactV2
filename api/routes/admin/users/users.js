@@ -1,5 +1,5 @@
 // =========================================
-// routes/admin/dashboard.js
+// routes/admin/users.js
 // =========================================
 
 const express = require("express");
@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { createClient } = require("@supabase/supabase-js");
 
-module.exports = function adminDashboardRoutes(app) {
+module.exports = function adminUserRoutes(app) {
   const router = express.Router();
 
   const supabase = createClient(
@@ -22,13 +22,13 @@ module.exports = function adminDashboardRoutes(app) {
   // =========================================
   async function verifyAdminToken(req, res, next) {
     const token = req.cookies?.auth_token || req.headers.authorization?.split(" ")[1];
-    
-    console.log('🔍 Admin verification - Token present:', !!token);
-    
+
+    console.log("🔍 Admin verification - Token present:", !!token);
+
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Unauthorized: Missing token" 
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Missing token",
       });
     }
 
@@ -36,10 +36,10 @@ module.exports = function adminDashboardRoutes(app) {
       const decoded = jwt.verify(token, JWT_SECRET);
 
       // Check if user is admin
-      if (decoded.role !== 'admin') {
-        return res.status(403).json({ 
-          success: false, 
-          message: "Forbidden: Admin access required" 
+      if (decoded.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Forbidden: Admin access required",
         });
       }
 
@@ -53,44 +53,44 @@ module.exports = function adminDashboardRoutes(app) {
         .maybeSingle();
 
       if (!session) {
-        return res.status(401).json({ 
-          success: false, 
-          message: "Session expired or invalid" 
+        return res.status(401).json({
+          success: false,
+          message: "Session expired or invalid",
         });
       }
 
       req.user = decoded; // Attach user info to request
       next();
     } catch (err) {
-      console.error('❌ Admin token verification failed:', err.message);
-      return res.status(401).json({ 
-        success: false, 
-        message: "Invalid or expired token" 
+      console.error("❌ Admin token verification failed:", err.message);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token",
       });
     }
   }
 
   // =========================================
-  // 🔹 ADMIN DASHBOARD ROUTES
-  // Note: /verify-token is handled by AuthContext
+  // 🔹 ADMIN USER ROUTES
   // =========================================
 
   // =========================================
   // 📋 GET /users - Get all active users
   // =========================================
   router.get("/users", verifyAdminToken, async (req, res) => {
-    console.log('📋 GET /users called by:', req.user?.username);
-    
+    console.log("📋 GET /users called by:", req.user?.username);
+
     try {
       const { data: users, error } = await supabase
         .from("users")
-        .select("user_id, first_name, last_name, email, username, role, status, created_at, last_login")
+        .select(
+          "user_id, first_name, last_name, email, username, role, status, created_at, last_login"
+        )
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      // Format data for frontend
-      const formattedUsers = users.map(user => ({
+      const formattedUsers = users.map((user) => ({
         user_id: user.user_id,
         full_name: `${user.first_name} ${user.last_name}`,
         first_name: user.first_name,
@@ -100,21 +100,21 @@ module.exports = function adminDashboardRoutes(app) {
         role: user.role,
         status: user.status,
         created_at: user.created_at,
-        last_login: user.last_login
+        last_login: user.last_login,
       }));
 
       console.log(`✅ Retrieved ${formattedUsers.length} users`);
 
-      return res.status(200).json({ 
-        success: true, 
+      return res.status(200).json({
+        success: true,
         users: formattedUsers,
-        count: formattedUsers.length
+        count: formattedUsers.length,
       });
     } catch (err) {
-      console.error('❌ Error fetching users:', err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to fetch users" 
+      console.error("❌ Error fetching users:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch users",
       });
     }
   });
@@ -128,32 +128,34 @@ module.exports = function adminDashboardRoutes(app) {
 
       const { data: user, error } = await supabase
         .from("users")
-        .select("user_id, first_name, last_name, email, username, role, status, created_at, last_login")
+        .select(
+          "user_id, first_name, last_name, email, username, role, status, created_at, last_login"
+        )
         .eq("user_id", user_id)
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          return res.status(404).json({ 
-            success: false, 
-            message: "User not found" 
+        if (error.code === "PGRST116") {
+          return res.status(404).json({
+            success: false,
+            message: "User not found",
           });
         }
         throw error;
       }
 
-      return res.status(200).json({ 
-        success: true, 
+      return res.status(200).json({
+        success: true,
         user: {
           ...user,
-          full_name: `${user.first_name} ${user.last_name}`
-        }
+          full_name: `${user.first_name} ${user.last_name}`,
+        },
       });
     } catch (err) {
-      console.error('Error fetching user:', err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to fetch user" 
+      console.error("Error fetching user:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch user",
       });
     }
   });
@@ -165,56 +167,52 @@ module.exports = function adminDashboardRoutes(app) {
     try {
       const { first_name, last_name, email, username, password, role } = req.body;
 
-      // Validation
       if (!first_name || !last_name || !email || !username || !password || !role) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "All fields are required" 
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required",
         });
       }
 
       if (password.length < 6) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Password must be at least 6 characters" 
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 6 characters",
         });
       }
 
-      if (!['admin', 'customer'].includes(role)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid role. Must be 'admin' or 'customer'" 
+      if (!["admin", "customer"].includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid role. Must be 'admin' or 'customer'",
         });
       }
 
-      // Check if email or username already exists
       const { data: existingUsers } = await supabase
         .from("users")
         .select("email, username")
         .or(`email.eq.${email},username.eq.${username}`);
 
       if (existingUsers && existingUsers.length > 0) {
-        const existingEmail = existingUsers.find(u => u.email === email);
-        const existingUsername = existingUsers.find(u => u.username === username);
-        
+        const existingEmail = existingUsers.find((u) => u.email === email);
+        const existingUsername = existingUsers.find((u) => u.username === username);
+
         if (existingEmail) {
-          return res.status(409).json({ 
-            success: false, 
-            message: "Email already exists" 
+          return res.status(409).json({
+            success: false,
+            message: "Email already exists",
           });
         }
         if (existingUsername) {
-          return res.status(409).json({ 
-            success: false, 
-            message: "Username already exists" 
+          return res.status(409).json({
+            success: false,
+            message: "Username already exists",
           });
         }
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Insert user
       const { data: newUser, error } = await supabase
         .from("users")
         .insert({
@@ -224,7 +222,7 @@ module.exports = function adminDashboardRoutes(app) {
           username,
           password: hashedPassword,
           role,
-          status: 'active'
+          status: "active",
         })
         .select()
         .single();
@@ -233,8 +231,8 @@ module.exports = function adminDashboardRoutes(app) {
 
       console.log(`✅ User created: ${newUser.user_id} by admin: ${req.user.username}`);
 
-      return res.status(201).json({ 
-        success: true, 
+      return res.status(201).json({
+        success: true,
         message: "User created successfully",
         user: {
           user_id: newUser.user_id,
@@ -245,14 +243,14 @@ module.exports = function adminDashboardRoutes(app) {
           username: newUser.username,
           role: newUser.role,
           status: newUser.status,
-          created_at: newUser.created_at
-        }
+          created_at: newUser.created_at,
+        },
       });
     } catch (err) {
-      console.error('Error creating user:', err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to create user" 
+      console.error("Error creating user:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create user",
       });
     }
   });
@@ -266,30 +264,30 @@ module.exports = function adminDashboardRoutes(app) {
       const { first_name, last_name, email, username, role, status, password } = req.body;
 
       if (!first_name || !last_name || !email || !username || !role || !status) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "All fields except password are required" 
+        return res.status(400).json({
+          success: false,
+          message: "All fields except password are required",
         });
       }
 
-      if (!['admin', 'customer'].includes(role)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid role" 
+      if (!["admin", "customer"].includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid role",
         });
       }
 
-      if (!['active', 'inactive', 'suspended'].includes(status)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid status" 
+      if (!["active", "inactive", "suspended"].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status",
         });
       }
 
       if (password && password.length < 6) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Password must be at least 6 characters" 
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 6 characters",
         });
       }
 
@@ -300,9 +298,9 @@ module.exports = function adminDashboardRoutes(app) {
         .single();
 
       if (!existingUser) {
-        return res.status(404).json({ 
-          success: false, 
-          message: "User not found" 
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
         });
       }
 
@@ -313,19 +311,19 @@ module.exports = function adminDashboardRoutes(app) {
         .neq("user_id", user_id);
 
       if (duplicates && duplicates.length > 0) {
-        const duplicateEmail = duplicates.find(u => u.email === email);
-        const duplicateUsername = duplicates.find(u => u.username === username);
-        
+        const duplicateEmail = duplicates.find((u) => u.email === email);
+        const duplicateUsername = duplicates.find((u) => u.username === username);
+
         if (duplicateEmail) {
-          return res.status(409).json({ 
-            success: false, 
-            message: "Email already in use by another user" 
+          return res.status(409).json({
+            success: false,
+            message: "Email already in use by another user",
           });
         }
         if (duplicateUsername) {
-          return res.status(409).json({ 
-            success: false, 
-            message: "Username already in use by another user" 
+          return res.status(409).json({
+            success: false,
+            message: "Username already in use by another user",
           });
         }
       }
@@ -337,7 +335,7 @@ module.exports = function adminDashboardRoutes(app) {
         username,
         role,
         status,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       if (password) {
@@ -355,8 +353,8 @@ module.exports = function adminDashboardRoutes(app) {
 
       console.log(`✅ User updated: ${user_id} by admin: ${req.user.username}`);
 
-      return res.status(200).json({ 
-        success: true, 
+      return res.status(200).json({
+        success: true,
         message: "User updated successfully",
         user: {
           user_id: updatedUser.user_id,
@@ -367,14 +365,14 @@ module.exports = function adminDashboardRoutes(app) {
           username: updatedUser.username,
           role: updatedUser.role,
           status: updatedUser.status,
-          created_at: updatedUser.created_at
-        }
+          created_at: updatedUser.created_at,
+        },
       });
     } catch (err) {
-      console.error('Error updating user:', err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to update user" 
+      console.error("Error updating user:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update user",
       });
     }
   });
@@ -394,39 +392,39 @@ module.exports = function adminDashboardRoutes(app) {
         .single();
 
       if (!existingUser) {
-        return res.status(404).json({ 
-          success: false, 
-          message: "User not found" 
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
         });
       }
 
       if (existingUser.user_id === req.user.user_id) {
-        return res.status(403).json({ 
-          success: false, 
-          message: "You cannot delete your own account" 
+        return res.status(403).json({
+          success: false,
+          message: "You cannot delete your own account",
         });
       }
 
-      const { data, error } = await supabase.rpc('soft_delete_user', {
+      const { data, error } = await supabase.rpc("soft_delete_user", {
         p_user_id: user_id,
         p_archived_by: req.user.username,
-        p_reason: reason || 'Deleted by administrator'
+        p_reason: reason || "Deleted by administrator",
       });
 
       if (error) throw error;
 
       console.log(`✅ User archived: ${user_id} by admin: ${req.user.username}`);
 
-      return res.status(200).json({ 
-        success: true, 
+      return res.status(200).json({
+        success: true,
         message: "User archived successfully",
-        archived_user_id: user_id
+        archived_user_id: user_id,
       });
     } catch (err) {
-      console.error('Error archiving user:', err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to archive user" 
+      console.error("Error archiving user:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to archive user",
       });
     }
   });
@@ -443,7 +441,7 @@ module.exports = function adminDashboardRoutes(app) {
 
       if (error) throw error;
 
-      const formattedUsers = archivedUsers.map(user => ({
+      const formattedUsers = archivedUsers.map((user) => ({
         id: user.id,
         user_id: user.user_id,
         full_name: `${user.first_name} ${user.last_name}`,
@@ -456,19 +454,19 @@ module.exports = function adminDashboardRoutes(app) {
         created_at: user.created_at,
         archived_at: user.archived_at,
         archived_by: user.archived_by,
-        archive_reason: user.archive_reason
+        archive_reason: user.archive_reason,
       }));
 
-      return res.status(200).json({ 
-        success: true, 
+      return res.status(200).json({
+        success: true,
         users: formattedUsers,
-        count: formattedUsers.length
+        count: formattedUsers.length,
       });
     } catch (err) {
-      console.error('Error fetching archived users:', err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to fetch archived users" 
+      console.error("Error fetching archived users:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch archived users",
       });
     }
   });
@@ -480,21 +478,21 @@ module.exports = function adminDashboardRoutes(app) {
     try {
       const { user_id } = req.params;
 
-      const { data, error } = await supabase.rpc('restore_user', {
-        p_user_id: user_id
+      const { data, error } = await supabase.rpc("restore_user", {
+        p_user_id: user_id,
       });
 
       if (error) {
-        if (error.message.includes('already active')) {
-          return res.status(409).json({ 
-            success: false, 
-            message: "User is already active" 
+        if (error.message.includes("already active")) {
+          return res.status(409).json({
+            success: false,
+            message: "User is already active",
           });
         }
-        if (error.message.includes('No archived record')) {
-          return res.status(404).json({ 
-            success: false, 
-            message: "No archived record found for this user" 
+        if (error.message.includes("No archived record")) {
+          return res.status(404).json({
+            success: false,
+            message: "No archived record found for this user",
           });
         }
         throw error;
@@ -502,23 +500,24 @@ module.exports = function adminDashboardRoutes(app) {
 
       console.log(`✅ User restored: ${user_id} by admin: ${req.user.username}`);
 
-      return res.status(200).json({ 
-        success: true, 
+      return res.status(200).json({
+        success: true,
         message: "User restored successfully",
-        restored_user_id: user_id
+        restored_user_id: user_id,
       });
     } catch (err) {
-      console.error('Error restoring user:', err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to restore user" 
+      console.error("Error restoring user:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to restore user",
       });
     }
   });
 
+
   // =========================================
-  // 🔹 Mount all routes under /api/admin/dashboard
+  // 🔹 Mount all routes under /api/admin/users
   // =========================================
-  console.log('🔧 Mounting admin dashboard routes at: /api/admin/dashboard');
-  app.use("/api/admin/dashboard", router);
+  console.log("🔧 Mounting admin dashboard routes at: /api/admin/users");
+  app.use("/api/admin/", router);
 };

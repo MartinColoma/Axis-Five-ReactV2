@@ -1,12 +1,11 @@
 // AdminHome.tsx
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
-import styles from './AdminHome.module.css';
+import styles from './AdminProd.module.css';
 import Navbar from '../../ProdCatalog/PC_Navigation/PC_Navbar';
 import Footer from '../../Landing/Navigation/Footer';
-import AdminOverview from './QuickActions/AdminOverview/AdminOverview';
-import AdminCreateAcc from '../AdminUsers/QuickActions/CreateAcc/CreateAcc';
-import AdminAddProd from '../AdminProducts/QuickActions/AdminAddProd/AddProd';
+import AdminOverview from './QuickActions/AdminOverview/Overview';
+import AdminAddProd from './QuickActions/AdminAddProd/AddProd';
 import usePageMeta from '../../../hooks/usePageMeta';
 
 type ActiveTab = 'overview' | 'create-account' | 'add-product';
@@ -61,7 +60,7 @@ const AdminHome = () => {
 
       <section className={styles.sectionPadding}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Administrator Dashboard</h2>
+          <h2 className={styles.sectionTitle}>Product Management</h2>
 
           <div className={styles.quickActionsPanel}>
             <div className={styles.tabHeader}>
@@ -74,12 +73,6 @@ const AdminHome = () => {
                   <i className="fas fa-chart-bar"></i>Overview
                 </button>
                 <button
-                  className={`${styles.tabBtn} ${activeTab === 'create-account' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('create-account')}
-                >
-                  <i className="fas fa-user-plus"></i>Create New Account
-                </button>
-                <button
                   className={`${styles.tabBtn} ${activeTab === 'add-product' ? styles.active : ''}`}
                   onClick={() => setActiveTab('add-product')}
                 >
@@ -90,7 +83,6 @@ const AdminHome = () => {
 
             <div className={styles.tabContentWrapper}>
               {activeTab === 'overview' && <AdminOverview />}
-              {activeTab === 'create-account' && <AdminCreateAcc />}
               {activeTab === 'add-product' && <AdminAddProd />}
             </div>
           </div>

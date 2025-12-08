@@ -26,7 +26,7 @@ type AuthMode = 'login' | 'register';
 type RegisterStep = 1 | 2;
 
 // API Configuration
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_LOCAL_SERVER;
 
 // Create axios instance with default config
 const api = axios.create({
@@ -55,7 +55,7 @@ const AuthModal: FC<AuthModalProps> = ({
   // Use auth context
   const { login } = useAuth();
   
-  usePageMeta("AxisFive Store - Account", "/Logos/A5_Logo1.png");
+  usePageMeta("AxisFive Store - Login/Register", "/images/Logos/A5_Logo1.png");
 
   const [formData, setFormData] = useState<FormData>({
     username: '',

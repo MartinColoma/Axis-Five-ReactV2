@@ -1,21 +1,20 @@
-// AdminHome.tsx
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
-import styles from './AdminHome.module.css';
+import styles from './AdminUser.module.css';
 import Navbar from '../../ProdCatalog/PC_Navigation/PC_Navbar';
 import Footer from '../../Landing/Navigation/Footer';
-import AdminOverview from './QuickActions/AdminOverview/AdminOverview';
-import AdminCreateAcc from '../AdminUsers/QuickActions/CreateAcc/CreateAcc';
-import AdminAddProd from '../AdminProducts/QuickActions/AdminAddProd/AddProd';
-import usePageMeta from '../../../hooks/usePageMeta';
+import AdminOverview from './QuickActions/Overview/Overview';
+import AdminCreateAcc from './QuickActions/CreateAcc/CreateAcc';
+import AdminArchivedUsers from './QuickActions/ArchivedUsers/ArchivedUsers';
+import usePageMeta from  '../../../hooks/usePageMeta';
 
-type ActiveTab = 'overview' | 'create-account' | 'add-product';
+type ActiveTab = 'overview' | 'create-account' | 'archived-users';
 
 const AdminHome = () => {
   const location = useLocation();
   const navigate = useNavigate();
   usePageMeta("AxisFive Store - Products", "/images/Logos/A5_Logo1.png");
-
+ 
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
 
   useEffect(() => {
@@ -61,8 +60,9 @@ const AdminHome = () => {
 
       <section className={styles.sectionPadding}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Administrator Dashboard</h2>
+          <h2 className={styles.sectionTitle}>User Management</h2>
 
+          {/* Quick Actions Panel */}
           <div className={styles.quickActionsPanel}>
             <div className={styles.tabHeader}>
               <h4 className={styles.panelTitle}>Quick Actions</h4>
@@ -80,10 +80,10 @@ const AdminHome = () => {
                   <i className="fas fa-user-plus"></i>Create New Account
                 </button>
                 <button
-                  className={`${styles.tabBtn} ${activeTab === 'add-product' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('add-product')}
+                  className={`${styles.tabBtn} ${activeTab === 'archived-users' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('archived-users')}
                 >
-                  <i className="fas fa-box-open"></i>Add New Product
+                  <i className="fas fa-archive"></i>Archived Users
                 </button>
               </div>
             </div>
@@ -91,7 +91,7 @@ const AdminHome = () => {
             <div className={styles.tabContentWrapper}>
               {activeTab === 'overview' && <AdminOverview />}
               {activeTab === 'create-account' && <AdminCreateAcc />}
-              {activeTab === 'add-product' && <AdminAddProd />}
+              {activeTab === 'archived-users' && <AdminArchivedUsers />}
             </div>
           </div>
         </div>

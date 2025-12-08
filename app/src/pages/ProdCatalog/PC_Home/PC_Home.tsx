@@ -111,7 +111,7 @@ export default function Products() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [heroCarouselIndex, setHeroCarouselIndex] = useState(0);
-  usePageMeta("AxisFive Store - Products", "/Logos/A5_Logo1.png");
+  usePageMeta("AxisFive Store - Products", "/images/Logos/A5_Logo1.png");
 
   // Auto-play hero carousel
   useEffect(() => {
@@ -251,7 +251,7 @@ export default function Products() {
       {/* Product Catalog Section */}
       <section className={styles.sectionPadding}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Product Catalogue</h2>
+          <h2 className={styles.sectionTitle}>Product Catalog</h2>
 
           {/* Filters */}
           <div className={styles.filters}>

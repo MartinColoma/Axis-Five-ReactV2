@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './AdminCreateAcc.module.css';
+import styles from './CreateAcc.module.css';
 
 interface FormData {
   role: string;
@@ -10,7 +10,7 @@ interface FormData {
   password: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 const AdminCreateAcc: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
@@ -60,7 +60,7 @@ const AdminCreateAcc: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/users`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         method: 'POST',
         credentials: 'include',
         headers: {

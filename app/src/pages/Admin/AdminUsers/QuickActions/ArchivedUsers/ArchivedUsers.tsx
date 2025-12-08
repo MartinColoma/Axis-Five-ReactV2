@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import styles from './AdminArchivedUsers.module.css';
+import styles from './ArchivedUsers.module.css';
 
 interface ArchivedUser {
   id: string;
@@ -28,7 +28,7 @@ type SortColumn =
   | 'archived_by';
 type SortDirection = 'asc' | 'desc';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 const AdminArchivedUsers: React.FC = () => {
   const [users, setUsers] = useState<ArchivedUser[]>([]);
@@ -57,7 +57,7 @@ const AdminArchivedUsers: React.FC = () => {
   const fetchArchivedUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/users-archived`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users-archived`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -91,7 +91,7 @@ const AdminArchivedUsers: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/admin/dashboard/users/restore/${userToRestore.user_id}`,
+        `${API_BASE_URL}/api/admin/users/restore/${userToRestore.user_id}`,
         {
           method: 'POST',
           credentials: 'include',
