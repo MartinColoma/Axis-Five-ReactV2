@@ -28,7 +28,7 @@ type SortColumn =
   | 'archived_by';
 type SortDirection = 'asc' | 'desc';
 
-const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 const AdminArchivedUsers: React.FC = () => {
   const [users, setUsers] = useState<ArchivedUser[]>([]);

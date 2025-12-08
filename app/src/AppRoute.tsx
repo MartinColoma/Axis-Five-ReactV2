@@ -10,6 +10,8 @@ import About from './pages/Landing/About/About';
 // Product Catalog
 import ProdCatalog from './pages/ProdCatalog/PC_Home/PC_Home';
 import AuthModal from './pages/ProdCatalog/PC_Auth/PC_LoginReg';
+import PC_Product from './pages/ProdCatalog/PC_Product/PC_Product';
+
 // User Pages
 
 // Admin Pages
@@ -46,6 +48,7 @@ const AppRoutes: FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/product-catalog" element={<ProdCatalog />} />
+        <Route path="/products/:slug" element={<PC_Product />} />
 
         {/* Protected Admin Routes */}
         <Route
