@@ -1,3 +1,4 @@
+// src/pages/ProdCatalog/PC_Navigation/PC_Navbar.tsx
 import { useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -11,20 +12,21 @@ import {
   Package,
   FileText,
   Users,
- // Settings,
   UserCircle,
-} from 'lucide-react'; // all Lucide icons [web:9][web:22][web:34][web:35][web:27][web:36][web:18]
+} from 'lucide-react';
 import styles from './PC_Navbar.module.css';
 import LoginPage from '../PC_Auth/PC_LoginReg';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface EcommerceNavbarProps {
-  cartItemCount?: number;
+  cartItemCount?: number;      // optional override from parent (still supported)
   onCartClick?: () => void;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
+
 const EcommerceNavbar: FC<EcommerceNavbarProps> = ({ 
-  cartItemCount = 0,
+  cartItemCount,
   onCartClick,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -36,6 +38,9 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
   // Logout modal
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Cart badge (from backend)
+  const [cartCount, setCartCount] = useState<number>(0);
 
   const navbarRef = useRef<HTMLDivElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
@@ -60,6 +65,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
     setIsAccountDropdownOpen(false);
   };
 
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -115,6 +121,48 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 🔹 Load cart count for logged‑in customers
+  useEffect(() => {
+    if (!isLoggedIn || userData?.role !== 'customer') {
+      setCartCount(0);
+      return;
+    }
+
+    const loadCartCount = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/product-catalog/cart`,
+          {
+            credentials: 'include',
+          }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+          // prefer backend aggregate; fall back to items length if needed
+          const total =
+            typeof data.total_quantity === 'number'
+              ? data.total_quantity
+              : Array.isArray(data.items)
+              ? data.items.reduce(
+                  (sum: number, item: { quantity?: number }) =>
+                    sum + (item.quantity || 0),
+                  0
+                )
+              : 0;
+          setCartCount(total);
+        }
+      } catch (err) {
+        console.error('Error loading cart count:', err);
+      }
+    };
+
+    loadCartCount();
+  }, [isLoggedIn, userData?.role]);
+
+  const effectiveCartCount =
+    typeof cartItemCount === 'number' ? cartItemCount : cartCount;
+
   const handleCartClick = () => {
     closeMobileMenu();
     if (onCartClick) {
@@ -125,7 +173,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
   };
 
   const handleModalClose = () => {
-    const bgLocation = location.state?.backgroundLocation;
+    const bgLocation = (location.state as any)?.backgroundLocation;
     if (bgLocation) {
       navigate(bgLocation.pathname);
     } else {
@@ -157,6 +205,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
     try {
       await logout();
       setShowLogoutModal(false);
+      setCartCount(0);
       navigate('/product-catalog');
     } catch (error) {
       console.error('Logout error:', error);
@@ -193,7 +242,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
           </Link>
 
           <div className={styles.navbarActions}>
-            {/* HOME ICON: visible for everyone (guest, customer, admin) */}
+            {/* Home icon */}
             <button
               className={styles.dropdownItem}
               onClick={() => handleAccountNavigation('/')}
@@ -202,7 +251,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
               <Home size={24} />
             </button>
 
-            {/* CART ICON: only for guests and customers (not admins) */}
+            {/* Cart icon: guests + customers */}
             {(!isLoggedIn || userData?.role === 'customer') && (
               <button 
                 className={styles.cartBtn}
@@ -210,13 +259,13 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                 aria-label="Shopping cart"
               >
                 <ShoppingCart size={24} />
-                {cartItemCount > 0 && (
-                  <span className={styles.cartBadge}>{cartItemCount}</span>
+                {effectiveCartCount > 0 && (
+                  <span className={styles.cartBadge}>{effectiveCartCount}</span>
                 )}
               </button>
             )}
 
-            {/* AUTH BUTTONS (when not logged in) */}
+            {/* Auth buttons / account dropdown */}
             {!isLoggedIn ? (
               <div className={styles.authButtons}>
                 <button className={styles.btnLogin} onClick={handleLogin}>
@@ -227,9 +276,7 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                 </button>
               </div>
             ) : (
-              /* ACCOUNT DROPDOWN (when logged in) */
               <div className={styles.accountDropdown} ref={accountDropdownRef}>
-                {/* User icon that toggles the dropdown */}
                 <button
                   className={styles.accountBtn}
                   onClick={toggleAccountDropdown}
@@ -241,7 +288,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
 
                 {isAccountDropdownOpen && (
                   <div className={styles.dropdownMenu}>
-                    {/* CUSTOMER DROPDOWN (userData.role === 'customer') */}
                     {userData?.role === 'customer' ? (
                       <>
                         <div className={styles.dropdownHeader}>
@@ -249,13 +295,12 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                           <span className={styles.userRole}> (Customer)</span>
                         </div>
 
-                        {/* RESTORED CUSTOMER BUTTONS (commented, now using Lucide) */}
                         <button
                           className={styles.dropdownItem}
-                          onClick={() => handleAccountNavigation('/user/orders')}
+                          onClick={() => handleAccountNavigation('/account/rfqs')}
                         >
                           <Package size={16} />
-                          <span>Orders</span>
+                          <span>My Requests</span>
                         </button>
                         <button
                           className={styles.dropdownItem}
@@ -264,7 +309,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                           <UserCircle size={16} />
                           <span>Profile</span>
                         </button>
-                       
 
                         <button
                           className={`${styles.dropdownItem} ${styles.logoutItem}`}
@@ -274,13 +318,11 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                         </button>
                       </>
                     ) : (
-                      /* ADMIN DROPDOWN (for admin users) */
                       <>
                         <div className={styles.dropdownHeader}>
                           <span className={styles.userName}>{getDisplayName()}</span>
                           <span className={styles.userRole}> (Admin)</span>
                         </div>
-
 
                         <button
                           className={styles.dropdownItem}
@@ -289,8 +331,6 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                           <LayoutDashboard size={16} />
                           <span>Dashboard</span>
                         </button>
-
-                        {/* RESTORED ADMIN BUTTONS (commented, now using Lucide) */}                        
                         <button
                           className={styles.dropdownItem}
                           onClick={() => handleAccountNavigation('/product-catalog')}
@@ -324,16 +364,8 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({
                           onClick={() => handleAccountNavigation('/admin/user-mngt')}
                         >
                           <Users size={16} />
-                          <span>User Management</span>
+                          <span>Users</span>
                         </button>
-                        {/* <button
-                          className={styles.dropdownItem}
-                          onClick={() => handleAccountNavigation('/admin/settings')}
-                        >
-                          <Settings size={16} />
-                          <span>Settings</span>
-                        </button> */}
-                       
 
                         <div className={styles.dropdownDivider}></div>
                         <button

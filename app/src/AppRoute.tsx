@@ -14,6 +14,9 @@ import ProdCatalog from './pages/ProdCatalog/PC_Home/PC_Home';
 import AuthModal from './pages/ProdCatalog/PC_Auth/PC_LoginReg';
 import PC_Product from './pages/ProdCatalog/PC_Product/PC_Product';
 import PC_Cart from './pages/ProdCatalog/PC_Product/Cart/Cart';
+import PC_RFQ from './pages/ProdCatalog/PC_Product/RFQ/RFQ';
+import PC_RFQDetails from './pages/ProdCatalog/PC_Product/RFQ/Details/RFQ_Details'
+import PC_RFQList from './pages/ProdCatalog/PC_Product/RFQ/List/RFQ_List'
 
 // Admin Pages
 import AdminHome from './pages/Admin/AdminHome/AdminHome';
@@ -49,7 +52,25 @@ const AppRoutes: FC = () => {
         <Route path="/product-catalog" element={<ProdCatalog />} />
         <Route path="/products/:slug" element={<PC_Product />} />
         <Route path="/cart" element={<PC_Cart />} />
-
+        <Route path="/rfq" element={<PC_RFQ />} />
+        
+        {/* Protected Store Routes*/}
+        <Route
+          path="/account/rfqs/:id"
+          element={
+            <ProtectedRoute requiredRole="customer">
+              <PC_RFQDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/rfqs"
+          element={
+            <ProtectedRoute requiredRole="customer">
+              <PC_RFQList />
+            </ProtectedRoute>
+          }
+        />
         {/* Protected Admin Routes */}
         <Route
           path="/admin/dashboard"

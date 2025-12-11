@@ -26,7 +26,7 @@ interface ProductFormData {
   main_image_url: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string; //VITE_API_LOCAL_SERVER //VITE_API_BASE_URL
 
 const slugify = (value: string) =>
   value
@@ -158,7 +158,7 @@ const AdminAddProd: React.FC = () => {
         main_image_url: formData.main_image_url || null,
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/add-product`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/add-product`, {
         method: 'POST',
         credentials: 'include',
         headers: {

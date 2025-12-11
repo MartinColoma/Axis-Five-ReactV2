@@ -32,6 +32,12 @@ create table
         constraint unique_cart_product unique (cart_id, product_id)
     );
 
+alter table public.cart_items
+add column status text not null default 'ACTIVE';
+
+-- e.g. 'ACTIVE' | 'RFQED' | 'REMOVED'
+create index if not exists idx_cart_items_status on public.cart_items (status);
+
 create index if not exists idx_cart_items_cart_id on public.cart_items (cart_id);
 
 create index if not exists idx_cart_items_product_id on public.cart_items (product_id);

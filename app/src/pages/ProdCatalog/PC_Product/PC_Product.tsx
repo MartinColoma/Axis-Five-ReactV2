@@ -1,3 +1,4 @@
+// src/pages/ProdCatalog/PC_Product/PC_Product.tsx
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './PC_Product.module.css';
@@ -59,7 +60,6 @@ export default function PC_Product() {
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [rfqQuantity, setRfqQuantity] = useState(1);
-  const [submittingRFQ, setSubmittingRFQ] = useState(false);
   const [notification, setNotification] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -144,39 +144,40 @@ export default function PC_Product() {
     return Math.max(product.min_order_qty || 1, rfqQuantity || 1);
   }, [product, rfqQuantity]);
 
-  const handleRFQSubmit = async () => {
+  // 🔹 PDP → RFQ page
+  const handleRFQSubmit = () => {
     if (!product) return;
 
-    setSubmittingRFQ(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/product-catalog/rfqs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          product_id: product.id,
-          quantity: effectiveQuantity,
-        }),
+    if (!isLoggedIn) {
+      navigate('/login', {
+        state: {
+          backgroundLocation: { pathname: `/products/${product.slug}` },
+        },
       });
-
-      const data = await res.json();
-      if (data.success) {
-        showNotification(
-          'success',
-          'Request for quote submitted. Our team will contact you.'
-        );
-      } else {
-        showNotification(
-          'error',
-          data.message || 'Failed to submit request for quote.'
-        );
-      }
-    } catch (err) {
-      console.error('Error submitting RFQ:', err);
-      showNotification('error', 'Failed to submit request for quote.');
-    } finally {
-      setSubmittingRFQ(false);
+      return;
     }
+
+    navigate('/rfq', {
+      state: {
+        source: 'pdp',
+        items: [
+          {
+            product_id: product.id,
+            quantity: effectiveQuantity,
+            product: {
+              id: product.id,
+              name: product.name,
+              slug: product.slug,
+              main_image_url: product.main_image_url,
+              base_price: product.base_price,
+              currency: product.currency,
+            },
+            unit_price: product.base_price,
+            currency: product.currency,
+          },
+        ],
+      },
+    });
   };
 
   const handleAddToCart = async () => {
@@ -390,7 +391,8 @@ export default function PC_Product() {
               <div className={styles.pricingModel}>
                 {product.pricing_model === 'one_time_hardware' &&
                   'One-time hardware purchase'}
-                {product.pricing_model === 'hardware_plus_subscription' &&
+                {product.pricing_model ===
+                  'hardware_plus_subscription' &&
                   'Hardware + subscription'}
                 {product.pricing_model === 'subscription_only' &&
                   'Subscription only'}
@@ -448,25 +450,19 @@ export default function PC_Product() {
               <div className={styles.actionsButtons}>
                 <button
                   type="button"
-                  className={styles.btnPrimary}
-                  onClick={handleRFQSubmit}
-                  disabled={
-                    submittingRFQ ||
-                    product.stock_status === 'out_of_stock'
-                  }
-                >
-                  {submittingRFQ
-                    ? 'Sending RFQ...'
-                    : 'Request for Quote'}
-                </button>
-
-                <button
-                  type="button"
                   className={styles.btnSecondary}
                   onClick={handleAddToCart}
                   disabled={product.stock_status === 'out_of_stock'}
                 >
                   Add to Cart
+                </button>
+                                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={handleRFQSubmit}
+                  disabled={product.stock_status === 'out_of_stock'}
+                >
+                  Request for Quote
                 </button>
               </div>
 
@@ -476,21 +472,6 @@ export default function PC_Product() {
                   {product.lead_time_days === 1 ? '' : 's'}
                 </p>
               )}
-            </div>
-
-            {/* Key bullets */}
-            <div className={styles.keyPoints}>
-              <h3>Why this product</h3>
-              <ul>
-                {product.is_iot_connected && (
-                  <li>Fully IoT-ready hardware.</li>
-                )}
-                {product.requires_subscription && (
-                  <li>Supports managed subscription services.</li>
-                )}
-                <li>Designed for small-scale IoT deployments.</li>
-                <li>Backed by AxisFive engineering support.</li>
-              </ul>
             </div>
           </div>
         </section>
@@ -662,7 +643,7 @@ export default function PC_Product() {
         </div>
       )}
 
-      {/* Existing toast notification */}
+      {/* Toast notification */}
       {notification && (
         <div
           className={`${styles.notification} ${

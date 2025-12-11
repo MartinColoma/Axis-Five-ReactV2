@@ -1,3 +1,4 @@
+--merged product database schema
 -- products
 create table public.products (
   id                   bigserial primary key,

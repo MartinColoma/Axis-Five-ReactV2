@@ -8,11 +8,11 @@
 
 .main {
   flex: 1 0 auto;
-  padding: 5rem 0 3rem; /* top/bottom only, sides handled by container */
+  padding: 5rem 0 3rem;
 }
 
 .container {
-  max-width: 1100px; /* keep negative space on sides */
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
@@ -22,13 +22,93 @@
   margin-bottom: 1.25rem;
 }
 
-/* existing centerBox, buttons, spinner etc can stay */
+/* center states (login prompt, empty, loading) */
+.centerBox {
+  margin-top: 3rem;
+  padding: 2rem 1.5rem;
+  border-radius: 10px;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.textMuted {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-bottom: 1.25rem;
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 3px solid rgba(148, 163, 184, 0.3);
+  border-top-color: #00e5ff;
+  margin: 0 auto 0.75rem;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* buttons */
+
+.btnPrimary {
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #00e5ff, #3b82f6);
+  color: #020617;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btnSecondary {
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnSecondary:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* cart section */
 
 .cartSection {
   margin-top: 0.75rem;
 }
-
-/* header + rows */
 
 .itemList {
   list-style: none;
@@ -94,6 +174,13 @@
   height: 100%;
   object-fit: cover;
 }
+.thumbButton {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
 
 .productName {
   background: none;
@@ -118,7 +205,7 @@
   text-align: center;
 }
 
-/* qty box – no browser arrows */
+/* qty box */
 
 .qtyBox {
   display: inline-flex;
@@ -148,7 +235,6 @@
   outline: none;
 }
 
-/* hide number spinners in case type=number is ever used */
 .qtyBox input::-webkit-outer-spin-button,
 .qtyBox input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -160,7 +246,6 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
-
 
 /* actions */
 
@@ -181,7 +266,7 @@
 
 .summaryBar {
   border-top: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(2, 13, 36, 0.97);
+  background: #05070a;
   padding: 0.75rem 0;
 }
 
@@ -190,15 +275,20 @@
   margin: 0 auto;
   padding: 0 1.5rem;
   display: flex;
-  justify-content:flex-end; /* put price on left, button on right */
+  justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
 }
 
-
 .summaryText {
   font-size: 0.9rem;
   color: #9ca3af;
+}
+
+.summaryRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .summaryPrice {
@@ -206,30 +296,58 @@
   font-weight: 600;
   color: #f9fafb;
 }
-.summaryRight {
+
+/* delete confirmation modal */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
   display: flex;
   align-items: center;
-  gap: 0.75rem; /* space between price and button */
+  justify-content: center;
+  z-index: 50;
 }
 
-.btnPrimary {
-  padding: 0.45rem 1.2rem;
+.modal {
+  background: #020617;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.modalTitle {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+
+.modalText {
+  font-size: 0.9rem;
+  color: #d1d5db;
+  margin: 0 0 1rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.btnDanger {
+  padding: 0.4rem 0.9rem;
   border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, #00e5ff, #3b82f6);
-  color: #020617;
-  font-size: 0.9rem;
+  background: #ef4444;
+  color: #f9fafb;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.btnPrimary:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.btnPrimary:hover:not(:disabled) {
+.btnDanger:hover {
   filter: brightness(1.05);
 }
 

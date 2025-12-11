@@ -299,10 +299,8 @@
 
 .actionsCard {
   margin-top: 0.6rem;
-  background: var(--bg-card-soft);
   border-radius: 10px;
   padding: 0.9rem 1rem;
-  border: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

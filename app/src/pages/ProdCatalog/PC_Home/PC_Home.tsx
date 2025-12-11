@@ -117,7 +117,7 @@ interface ApiProduct {
   main_image_url: string | null;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string; //VITE_API_LOCAL_SERVER //VITE_API_BASE_URL
 
 export default function Products() {
   const [apiProducts, setApiProducts] = useState<ApiProduct[]>([]);

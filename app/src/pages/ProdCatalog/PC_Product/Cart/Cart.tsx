@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../PC_Navigation/PC_Navbar';
-import Footer from '../../../Landing/Navigation/Footer';
 import { useAuth } from '../../../../contexts/AuthContext';
 import styles from './Cart.module.css';
 
@@ -29,6 +28,7 @@ export default function Cart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmDeleteItem, setConfirmDeleteItem] = useState<CartItem | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -139,10 +139,10 @@ export default function Cart() {
     updateQuantity(item, item.quantity + 1);
   };
 
-  const handleDelete = async (item: CartItem) => {
+  const handleDelete = async (itemId: number) => {
     try {
       const res = await fetch(
-        `${API_BASE_URL}/api/product-catalog/cart/items/${item.id}`,
+        `${API_BASE_URL}/api/product-catalog/cart/items/${itemId}`,
         {
           method: 'DELETE',
           credentials: 'include',
@@ -150,20 +150,53 @@ export default function Cart() {
       );
       const data = await res.json();
       if (data.success) {
-        setItems((prev) => prev.filter((i) => i.id !== item.id));
-        setSelectedIds((prev) => prev.filter((x) => x !== item.id));
+        setItems((prev) => prev.filter((i) => i.id !== itemId));
+        setSelectedIds((prev) => prev.filter((x) => x !== itemId));
+        setConfirmDeleteItem(null);
       }
     } catch (err) {
       console.error('Error deleting item:', err);
     }
   };
 
+  const handleConfirmDelete = () => {
+    if (!confirmDeleteItem) return;
+    handleDelete(confirmDeleteItem.id);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDeleteItem(null);
+  };
+
+  // 🔹 Cart → RFQ page with selected items
   const handleBulkRFQ = () => {
-    const source = selectedIds.length
+    const selected = selectedIds.length
       ? items.filter((i) => selectedIds.includes(i.id))
       : [];
-    if (!source.length) return;
-    console.log('RFQ for items:', source);
+
+    if (!selected.length) return;
+
+    navigate('/rfq', {
+      state: {
+        source: 'cart',
+        items: selected.map((item) => ({
+          cart_item_id: item.id,              // 🔹 add this
+          product_id: item.product_id,
+          quantity: item.quantity,
+          product: {
+            id: item.product_id,
+            name: item.product.name,
+            slug: item.product.slug,
+            main_image_url: item.product.main_image_url,
+            base_price: item.product.base_price,
+            currency: item.currency,
+          },
+          unit_price: item.unit_price,
+          currency: item.currency,
+        })),
+      },
+    });
+
   };
 
   // totals based only on selected items
@@ -199,7 +232,7 @@ export default function Cart() {
 
       <main className={styles.main}>
         <div className={styles.container}>
-          <h1 className={styles.title}>Your Cart</h1>
+          <h1 className={styles.title}>My Cart</h1>
 
           {authLoading || loading ? (
             <div className={styles.centerBox}>
@@ -298,12 +331,22 @@ export default function Cart() {
                           />
                           <div className={styles.productBlock}>
                             {item.product.main_image_url && (
-                              <div className={styles.thumb}>
-                                <img
-                                  src={item.product.main_image_url}
-                                  alt={item.product.name}
-                                />
-                              </div>
+                              <button
+                                type="button"
+                                className={styles.productName}
+                                onClick={() =>
+                                  navigate(
+                                    `/products/${item.product.slug}`
+                                  )
+                                }
+                              >
+                                <div className={styles.thumb}>
+                                  <img
+                                    src={item.product.main_image_url}
+                                    alt={item.product.name}
+                                  />
+                                </div>
+                              </button>
                             )}
                             <button
                               type="button"
@@ -364,7 +407,7 @@ export default function Cart() {
                           <button
                             type="button"
                             className={styles.linkDanger}
-                            onClick={() => handleDelete(item)}
+                            onClick={() => setConfirmDeleteItem(item)}
                           >
                             Delete
                           </button>
@@ -388,24 +431,57 @@ export default function Cart() {
               <span className={styles.summaryText}>
                 Total ({totalItems} item{totalItems === 1 ? '' : 's'}):
               </span>
-              <span className={styles.summaryPrice}>
-                {hasSelection
-                  ? money(totalPrice, currency)
-                  : 'PHP 0.00'}
-              </span>
-            <button
-              type="button"
-              className={styles.btnPrimary}
-              disabled={!hasSelection}
-              onClick={handleBulkRFQ}
-            >
-              Request quote
-            </button>
+              <div className={styles.summaryRight}>
+                <span className={styles.summaryPrice}>
+                  {hasSelection
+                    ? money(totalPrice, currency)
+                    : 'PHP 0.00'}
+                </span>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  disabled={!hasSelection}
+                  onClick={handleBulkRFQ}
+                >
+                  Request quote
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-      <Footer onScrollToSection={() => {}} />
+      {/* delete confirmation modal */}
+      {confirmDeleteItem && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className={styles.modal}>
+            <h2 className={styles.modalTitle}>Remove item?</h2>
+            <p className={styles.modalText}>
+              Remove <strong>{confirmDeleteItem.product.name}</strong> from
+              your cart?
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={handleCancelDelete}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                onClick={handleConfirmDelete}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

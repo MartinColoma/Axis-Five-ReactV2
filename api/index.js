@@ -62,6 +62,7 @@ const auth = require("./routes/auth/auth");
 //product catalog
 const prod_catalog = require('./routes/prod-catalog/product-catalog')
 const prod_cart = require ('./routes/prod-catalog/product-cart')
+const prod_rfq = require('./routes/prod-catalog/product-rfq')
 //admin
 const adminUser = require('./routes/admin/users/users')
 const adminProduct = require('./routes/admin/products/products')
@@ -96,6 +97,8 @@ prod_catalog(app);
 console.log("✅ Product-Catalog route mounted");
 prod_cart(app);
 console.log("✅ Product Cart route mounted");
+prod_rfq(app);
+console.log("✅ Product RFQ route mounted");
 // 🔹 Admin Routes
 adminUser(app);
 console.log("✅ Admin User route mounted");

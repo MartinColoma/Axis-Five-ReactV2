@@ -56,6 +56,8 @@ module.exports = function ProductCartRoutes(app) {
         return res.status(200).json({
           success: true,
           items: [],
+          total_quantity: 0,
+          item_count: 0,
         });
       }
 
@@ -68,6 +70,7 @@ module.exports = function ProductCartRoutes(app) {
           quantity,
           unit_price,
           currency,
+          status,
           product:products (
             id,
             name,
@@ -78,6 +81,7 @@ module.exports = function ProductCartRoutes(app) {
         `
         )
         .eq('cart_id', cart.id)
+        .eq('status', 'ACTIVE') // only active items
         .order('created_at', { ascending: true });
 
       if (itemsError) {
@@ -88,9 +92,18 @@ module.exports = function ProductCartRoutes(app) {
         });
       }
 
+      const safeItems = items || [];
+      const totalQuantity = safeItems.reduce(
+        (sum, item) => sum + (item.quantity || 0),
+        0
+      );
+      const itemCount = safeItems.length;
+
       return res.status(200).json({
         success: true,
-        items: items || [],
+        items: safeItems,
+        total_quantity: totalQuantity,
+        item_count: itemCount,
       });
     } catch (err) {
       console.error('❌ Unexpected error loading cart:', err);
@@ -139,12 +152,13 @@ module.exports = function ProductCartRoutes(app) {
       const unitPrice = product.base_price ?? null;
       const currency = product.currency || 'PHP';
 
-      // read existing quantity (if any)
+      // read existing ACTIVE quantity (if any)
       const { data: existingItem, error: existingError } = await supabase
         .from('cart_items')
-        .select('id, quantity')
+        .select('id, quantity, status')
         .eq('cart_id', cartId)
         .eq('product_id', product_id)
+        .eq('status', 'ACTIVE')
         .maybeSingle();
 
       if (existingError) {
@@ -159,6 +173,7 @@ module.exports = function ProductCartRoutes(app) {
         ? existingItem.quantity + quantity
         : quantity;
 
+      // upsert ACTIVE row
       const { error: upsertError } = await supabase
         .from('cart_items')
         .upsert(
@@ -168,6 +183,7 @@ module.exports = function ProductCartRoutes(app) {
             quantity: newQuantity,
             unit_price: unitPrice,
             currency,
+            status: 'ACTIVE',
           },
           { onConflict: 'cart_id,product_id' }
         );
@@ -212,6 +228,7 @@ module.exports = function ProductCartRoutes(app) {
         .select(
           `
           id,
+          status,
           cart:cart_sessions!inner (
             id,
             user_id,
@@ -222,6 +239,7 @@ module.exports = function ProductCartRoutes(app) {
         .eq('id', id)
         .eq('cart.user_id', userId)
         .eq('cart.status', 'ACTIVE')
+        .eq('status', 'ACTIVE') // only update active row
         .maybeSingle();
 
       if (itemError) {
@@ -265,7 +283,7 @@ module.exports = function ProductCartRoutes(app) {
     }
   });
 
-  // DELETE /api/product-catalog/cart/items/:id
+  // DELETE /api/product-catalog/cart/items/:id  (soft delete → REMOVED)
   router.delete('/items/:id', requireAuth, async (req, res) => {
     try {
       const userId = req.user.id;
@@ -276,6 +294,7 @@ module.exports = function ProductCartRoutes(app) {
         .select(
           `
           id,
+          status,
           cart:cart_sessions!inner (
             id,
             user_id,
@@ -286,6 +305,7 @@ module.exports = function ProductCartRoutes(app) {
         .eq('id', id)
         .eq('cart.user_id', userId)
         .eq('cart.status', 'ACTIVE')
+        .eq('status', 'ACTIVE')
         .maybeSingle();
 
       if (itemError) {
@@ -305,11 +325,11 @@ module.exports = function ProductCartRoutes(app) {
 
       const { error: deleteError } = await supabase
         .from('cart_items')
-        .delete()
+        .update({ status: 'REMOVED' })
         .eq('id', id);
 
       if (deleteError) {
-        console.error('❌ Error deleting cart item:', deleteError);
+        console.error('❌ Error soft-deleting cart item:', deleteError);
         return res.status(500).json({
           success: false,
           message: 'Failed to remove cart item',

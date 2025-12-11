@@ -54,7 +54,7 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({
     if (userData?.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
     } else {
-      return <Navigate to="/user/home" replace />;
+      return <Navigate to="/product-catalog" replace />;
     }
   }
 
