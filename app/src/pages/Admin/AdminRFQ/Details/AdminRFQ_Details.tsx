@@ -1,9 +1,9 @@
 // src/pages/Account/RFQ/RFQ_Details.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../../../PC_Navigation/PC_Navbar';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import styles from './RFQ_Details.module.css';
+import Navbar from '../../../ProdCatalog/PC_Navigation/PC_Navbar';
+import { useAuth } from '../../../../contexts/AuthContext';
+import styles from './AdminRFQ_Details.module.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
@@ -16,6 +16,7 @@ type RFQStatus =
   | 'REJECTED_BY_CUSTOMER'
   | 'EXPIRED'
   | 'CONVERTED_TO_ORDER';
+
 
 interface RFQItem {
   id: number;
@@ -57,7 +58,7 @@ interface RFQ {
   items?: RFQItem[];
 }
 
-export default function RFQ_Details() {
+export default function AdminRFQ_Details() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isLoggedIn, isLoading: authLoading } = useAuth();
@@ -75,7 +76,7 @@ export default function RFQ_Details() {
 
     if (!isLoggedIn) {
       navigate('/login', {
-        state: { backgroundLocation: { pathname: `/account/rfqs/${id}` } },
+        state: { backgroundLocation: { pathname: `/admin/rfqs/${id}` } },
       });
       return;
     }
@@ -85,7 +86,7 @@ export default function RFQ_Details() {
       setErrorMsg(null);
       try {
         const res = await fetch(
-          `${API_BASE_URL}/api/product-catalog/rfq/${id}`,
+          `${API_BASE_URL}/api/admin/rfq/${id}`,
           { credentials: 'include' }
         );
         const data = await res.json();
@@ -172,6 +173,8 @@ const activeTimelineIndex = useMemo(() => {
   }
 }, [rfq]);
 
+
+
   const totalQuantity = useMemo(
     () => items.reduce((sum, it) => sum + (it.quantity || 0), 0),
     [items]
@@ -207,7 +210,7 @@ const handleCancelRFQ = async () => {
   setIsCancelling(true);
   try {
     const res = await fetch(
-      `${API_BASE_URL}/api/product-catalog/rfq/${rfq.id}/cancel`,
+      `${API_BASE_URL}/api/admin/rfq/${rfq.id}/cancel`,
       {
         method: 'PATCH',
         credentials: 'include',
@@ -262,7 +265,7 @@ if (!rfq) {
             <button
               type="button"
               className={styles.btnPrimary}
-              onClick={() => navigate('/account/rfqs')}
+              onClick={() => navigate('/admin/rfqs')}
             >
               Back to RFQs
             </button>
@@ -301,7 +304,7 @@ if (!rfq) {
             <button
               type="button"
               className={styles.btnPrimary}
-              onClick={() => navigate('/account/rfqs')}
+              onClick={() => navigate('/admin/rfqs')}
             >
               Back to RFQs
             </button>
@@ -503,14 +506,6 @@ if (!rfq) {
                   <dd>{rfq.additional_notes || '—'}</dd>
                 </div>
               </dl>
-
-              <div className={styles.messageBox}>
-                <p className={styles.messageText}>
-                  Thank you! Your request has been submitted. Our team will
-                  review and send you a quote within 1–2 business days. You’ll
-                  see updates on this page and via email.
-                </p>
-              </div>
                 <div className={styles.actionsRow}>
                 <button
                     type="button"
@@ -533,7 +528,7 @@ if (!rfq) {
                 <button
                     type="button"
                     className={styles.btnPrimary}
-                    onClick={() => navigate('/account/rfqs')}
+                    onClick={() => navigate('/admin/rfqs')}
                 >
                     View all RFQs
                 </button>

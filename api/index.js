@@ -66,7 +66,7 @@ const prod_rfq = require('./routes/prod-catalog/product-rfq')
 //admin
 const adminUser = require('./routes/admin/users/users')
 const adminProduct = require('./routes/admin/products/products')
-
+const adminRFQ = require('./routes/admin/rfqs/rfqs')
 // =========================================
 // 🔹 Serve Static Files (Frontend Build)
 // =========================================
@@ -104,6 +104,8 @@ adminUser(app);
 console.log("✅ Admin User route mounted");
 adminProduct(app);
 console.log("✅ Admin Product route mounted");
+adminRFQ(app);
+console.log("✅ Admin RFQ route mounted");
 // 🔹 User Routes
 // Insert here if needed
 // =========================================

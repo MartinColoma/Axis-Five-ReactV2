@@ -1,0 +1,296 @@
+/* AdminRFQ_List.module.css */
+
+/* predictable sizing so grid columns don't "drift" due to padding/borders */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.page {
+  min-height: 100vh;
+  background: #05070a;
+  color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1 0 auto;
+  padding: 5rem 0 3rem;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 1.25rem;
+}
+
+/* center states */
+
+.centerBox {
+  margin-top: 3rem;
+  padding: 2rem 1.5rem;
+  border-radius: 10px;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.textMuted {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-bottom: 1.25rem;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 3px solid rgba(148, 163, 184, 0.3);
+  border-top-color: #00e5ff;
+  margin: 0 auto 0.75rem;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* buttons */
+
+.btnPrimary {
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #00e5ff, #3b82f6);
+  color: #020617;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btnSecondary {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnSecondary:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* RFQ list */
+
+.rfqSection {
+  margin-top: 0.75rem;
+}
+
+.itemList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #10141b;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* single shared grid for BOTH header and rows */
+.itemRow {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 2.2fr 1.5fr 1.6fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+}
+
+.itemRow + .itemRow {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* header styling only (no separate grid here!) */
+.headerRow {
+  background: rgba(15, 23, 42, 0.95);
+  color: #9ca3af;
+}
+
+/* columns: keep them shrinkable so content can't blow out tracks */
+.colId,
+.colDate,
+.colSummary,
+.colStatus,
+.colActions {
+  min-width: 0; /* prevents grid "blowout" */
+}
+
+/* BODY cell typography */
+.itemRow:not(.headerRow) .colId,
+.itemRow:not(.headerRow) .colDate,
+.itemRow:not(.headerRow) .colSummary,
+.itemRow:not(.headerRow) .colStatus,
+.itemRow:not(.headerRow) .colActions {
+  font-size: 0.9rem;
+}
+
+/* HEADER cell typography */
+.headerRow .colId,
+.headerRow .colDate,
+.headerRow .colSummary,
+.headerRow .colStatus,
+.headerRow .colActions {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* per-column tweaks */
+.colDate {
+  color: #d1d5db;
+}
+.headerRow .colDate {
+  color: #9ca3af;
+}
+
+.colSummary {
+  color: #e5e7eb;
+}
+.headerRow .colSummary {
+  color: #9ca3af;
+}
+
+.colStatus {
+  display: flex;
+  align-items: center;
+}
+
+/* actions: flex aligns buttons without affecting grid tracks */
+.colActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: right;
+}
+
+/* header "Actions" label aligns with buttons column */
+.headerRow .colActions {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+/* rfq code */
+.rfqCode {
+  font-weight: 600;
+}
+
+/* summary text */
+.summaryText {
+  color: #e5e7eb;
+}
+
+/* badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgePending {
+  background: rgba(234, 179, 8, 0.12);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.7);
+}
+
+.badgeInfo {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.7);
+}
+
+.badgeSuccess {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.7);
+}
+
+.badgeDanger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.7);
+}
+
+.badgeNeutral {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5f5;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .itemRow {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .colActions,
+  .headerRow .colActions {
+    justify-content: flex-start;
+    text-align: left;
+    flex-wrap: wrap;
+  }
+}
+.iconBtn {
+  width: 38px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: transparent;
+  color: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.iconBtnPrimary {
+  border: none;
+  background: linear-gradient(135deg, #00e5ff, #3b82f6);
+  color: #020617;
+}
+
+.iconBtnPrimary:hover {
+  filter: brightness(1.05);
+}

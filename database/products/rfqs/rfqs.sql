@@ -17,7 +17,8 @@ create table
         site_info text,
         additional_notes text,
         status text not null default 'PENDING_REVIEW',
-        -- 'PENDING_REVIEW' | 'QUOTE_SENT' | 'PARTIALLY_QUOTED'
+        -- status text not null default 'PENDING_REVIEW'
+        -- 'PENDING_REVIEW' | 'UNDER_REVIEW' | 'QUOTE_SENT' | 'PARTIALLY_QUOTED'
         -- | 'REJECTED_BY_ADMIN' | 'REJECTED_BY_CUSTOMER'
         -- | 'EXPIRED' | 'CONVERTED_TO_ORDER'
         currency text not null default 'PHP',

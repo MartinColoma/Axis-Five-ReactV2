@@ -51,7 +51,7 @@
   gap: 0.5rem;
 }
 
-/* Table controls */
+/* Table / header controls */
 .tableControls {
   margin-bottom: 1.25rem;
 }
@@ -143,72 +143,253 @@
   color: var(--danger-color);
 }
 
-/* Table styles */
-.tableResponsive {
-  border-radius: 4px;
-  overflow-x: auto;
-  border: 1px solid var(--border-color);
+/* ===== CART-STYLE LIST LAYOUT FOR PRODUCTS ===== */
+
+.cartSection {
   background: var(--card-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
 }
 
-.usersTable {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
+/* Rows */
+.itemList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.usersTable thead {
+.itemRow {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 1.5fr) minmax(0, 2fr) minmax(0, 2fr) minmax(
+      0,
+      2fr
+    ) minmax(0, 2.5fr);
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.15);
+  gap: 0.5rem;
+}
+
+.itemRow:nth-child(even) {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemRow:hover {
+  background: rgba(0, 188, 212, 0.05);
+}
+
+/* Header row */
+.headerRow {
   background: #1a1a1a;
-}
-
-.usersTable th {
-  color: var(--text-light);
-  padding: 0.85rem;
-  text-align: left;
-  font-weight: 600;
   border-bottom: 1px solid var(--border-color);
   font-size: 0.85rem;
-  user-select: none;
-  transition: background 0.2s;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.usersTable th:hover {
-  background: rgba(0, 188, 212, 0.05);
-}
-
-.sortIcon {
-  margin-left: 0.4rem;
-  font-size: 0.75rem;
-  opacity: 0.4;
-  transition: opacity 0.2s;
-}
-
-.usersTable th:hover .sortIcon {
-  opacity: 0.7;
-}
-
-.usersTable tbody tr {
-  background: rgba(0, 0, 0, 0.15);
-  border-bottom: 1px solid var(--border-color);
-  transition: background 0.2s;
-}
-
-.usersTable tbody tr:hover {
-  background: rgba(0, 188, 212, 0.05);
-}
-
-.usersTable td {
-  padding: 0.85rem;
+  font-weight: 600;
   color: var(--text-light);
+}
+
+.colProductHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.colProductHeader input[type='checkbox'] {
+  accent-color: var(--primary-cyan);
+}
+
+.headerSortButton {
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.colSmallHeader {
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Columns mapping to cart layout */
+.colProduct {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.colProduct input[type='checkbox'] {
+  accent-color: var(--primary-cyan);
+}
+
+.productBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.productNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.productName {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.productSubRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.productSku {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+.productCategory {
+  color: var(--text-muted);
+}
+
+/* Reused column names from cart */
+.colUnitPrice,
+.colQty,
+.colTotal,
+.colActions {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+/* Align numeric-ish columns */
+.colUnitPrice,
+.colQty,
+.colTotal {
+  text-align: left;
+}
+
+/* Actions column */
+.colActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+/* Center content box for empty/loading states */
+.centerBox {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary-cyan);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.subtitle {
+  color: #fff;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.textMuted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Summary bottom bar (same pattern as cart) */
+.summaryBar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #181818;
+  border-top: 1px solid var(--border-color);
+  padding: 0.75rem 1.25rem;
+  z-index: 10;
+}
+
+.summaryContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.summaryText {
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
-.usersTable .noResults td {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-muted);
+.summaryRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.summaryPrice {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 /* Badges */
@@ -220,24 +401,6 @@
   font-weight: 500;
   font-size: 0.8rem;
   display: inline-block;
-}
-
-.roleBadge {
-  padding: 0.25rem 0.7rem;
-  border-radius: 3px;
-  font-weight: 500;
-  font-size: 0.8rem;
-  display: inline-block;
-}
-
-.roleAdmin {
-  background: rgba(220, 53, 69, 0.15);
-  color: #ff6b7a;
-}
-
-.roleCustomer {
-  background: rgba(13, 202, 240, 0.15);
-  color: #0dcaf0;
 }
 
 .statusBadge {
@@ -262,6 +425,16 @@
   color: var(--warning-color);
 }
 
+.statusWarning {
+  background: rgba(255, 193, 7, 0.15);
+  color: var(--warning-color);
+}
+
+.statusInfo {
+  background: rgba(23, 162, 184, 0.15);
+  color: var(--info-color);
+}
+
 /* Action buttons */
 .actionBtn {
   background: transparent;
@@ -272,11 +445,9 @@
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.85rem;
-  margin-right: 0.4rem;
-}
-
-.actionBtn:last-child {
-  margin-right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .actionBtn:hover {
@@ -447,13 +618,6 @@
   color: var(--text-light);
 }
 
-.textMuted {
-  display: block;
-  margin-top: 0.25rem;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
 /* Modal footer buttons */
 .btnPrimary,
 .btnSecondary,
@@ -499,15 +663,6 @@
   filter: brightness(1.05);
 }
 
-/* Delete modal user info */
-.userInfoBox {
-  margin-top: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
-  background: rgba(0, 0, 0, 0.25);
-}
-
 /* Notification */
 .notification {
   position: fixed;
@@ -550,14 +705,53 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .tableHeader {
+@media (max-width: 968px) {
+  .itemRow,
+  .headerRow {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 1.5fr) minmax(0, 2fr);
+    grid-template-areas:
+      'prod prod prod'
+      'qty stock status'
+      'created created actions';
+  }
+
+  .colProduct {
+    grid-area: prod;
+  }
+
+  .colUnitPrice {
+    grid-area: qty;
+  }
+
+  .colQty {
+    grid-area: stock;
+  }
+
+  .colTotal {
+    grid-area: created;
+  }
+
+  .colActions {
+    grid-area: actions;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .summaryContent {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .colMd6 {
-    flex: 0 0 100%;
+  .summaryRight {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+  .tableHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .actionBtn {
@@ -565,121 +759,14 @@
     font-size: 0.8rem;
   }
 }
-/* Responsive Design */
-@media (max-width: 968px) {
-  .container {
-    padding: 0 0.75rem;
-  }
-
-  .sectionPadding {
-    padding: 2rem 0;
-    min-height: auto;
-  }
-
-  .sectionTitle {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .quickActionsPanel {
-    margin: 0 -0.75rem;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-
-  .tabHeader {
-    padding: 1rem;
-  }
-
-  .panelTitle {
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .tabButtons {
-    flex-direction: column;
-  }
-
-  .tabBtn {
-    width: 100%;
-    justify-content: center;
-    padding: 0.75rem 1rem;
-  }
-
-  .tabContentWrapper {
-    padding: 1rem;
-  }
-
-  .formRow {
-    grid-template-columns: 1fr;
-  }
-
-  .colMd6,
-  .col12 {
-    grid-column: span 1;
-  }
-
-  .modalOverlay {
-    padding: 0.5rem;
-  }
-
-  .modalDialog {
-    max-width: 100%;
-    max-height: 95vh;
-  }
-
-  .modalHeader,
-  .modalFooter {
-    padding: 0.75rem 1rem;
-  }
-
-  .modalBody {
-    padding: 1rem;
-  }
-
-  .modalFooter {
-    flex-wrap: wrap;
-  }
-
-  .btnPrimary,
-  .btnSecondary,
-  .btnDanger {
-    flex: 1;
-    min-width: 120px;
-    justify-content: center;
-  }
-
-  .notification {
-    right: 0.5rem;
-    left: 0.5rem;
-    min-width: auto;
-    max-width: none;
-    padding: 0.75rem 1rem;
-  }
-}
 
 @media (max-width: 480px) {
-  .sectionTitle {
-    font-size: 1.25rem;
+  .summaryBar {
+    padding: 0.6rem 0.85rem;
   }
 
-  .tabBtn {
-    font-size: 0.85rem;
-    padding: 0.65rem 0.85rem;
-  }
-
-  .tabBtn i {
-    font-size: 0.9rem;
-  }
-
-  .modalTitle {
-    font-size: 0.95rem;
-  }
-
-  .formControl {
-    font-size: 0.85rem;
-    padding: 0.55rem 0.75rem;
+  .summaryContent {
+    gap: 0.5rem;
   }
 
   .btnPrimary,
@@ -689,4 +776,76 @@
     padding: 0.6rem 0.85rem;
     min-width: 100px;
   }
+}
+.iconButton {
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Container for label + input/textarea/select */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted, #a0a0a0);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color, #333);
+  background: var(--input-bg, #111);
+  color: inherit;
+  font-size: 0.875rem;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--accent-color, #0af);
+}
+
+/* Checkbox row */
+.formGroupCheckbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.formGroupCheckbox label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.formGroupCheckbox input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+}
+
+/* Optional: modal width tweak for edit modal */
+.modalDialog {
+  max-width: 520px; /* ensure enough width for fields */
 }

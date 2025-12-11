@@ -22,7 +22,8 @@ import PC_RFQList from './pages/ProdCatalog/PC_Product/RFQ/List/RFQ_List'
 import AdminHome from './pages/Admin/AdminHome/AdminHome';
 import AdminUsers from './pages/Admin/AdminUsers/AdminUser';
 import AdminProd from './pages/Admin/AdminProducts/AdminProd';
-
+import AdminRFQList from './pages/Admin/AdminRFQ/List/AdminRFQ_List';
+import AdminRFQDetails from './pages/Admin/AdminRFQ/Details/AdminRFQ_Details';
 const AppRoutes: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -93,6 +94,22 @@ const AppRoutes: FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <AdminProd />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/rfqs/:id"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminRFQDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/rfqs"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminRFQList />
             </ProtectedRoute>
           }
         />

@@ -358,6 +358,151 @@ module.exports = function ProductRFQRoutes(app) {
       });
     }
   });
+// Customer accepts quote
+router.post('/:id/accept', requireAuth, async (req, res) => {
+  const userId = req.user && req.user.id;
+  const id = Number(req.params.id);
+
+  if (!id || Number.isNaN(id)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid RFQ id.',
+    });
+  }
+
+  try {
+    const { data: rfqRows, error: rfqError } = await supabase
+      .from('rfqs')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (rfqError) {
+      console.error('Error loading RFQ for accept:', rfqError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to load RFQ.',
+      });
+    }
+
+    const rfq = rfqRows && rfqRows[0];
+    if (!rfq) {
+      return res.status(404).json({
+        success: false,
+        message: 'RFQ not found.',
+      });
+    }
+
+    if (rfq.status !== 'QUOTE_SENT' && rfq.status !== 'PARTIALLY_QUOTED') {
+      return res.status(400).json({
+        success: false,
+        message: 'This RFQ is not in a quotable state.',
+      });
+    }
+
+    const { data: updated, error: updErr } = await supabase
+      .from('rfqs')
+      .update({ status: 'CONVERTED_TO_ORDER' })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select('*')
+      .limit(1);
+
+    if (updErr) {
+      console.error('Error accepting RFQ:', updErr);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to accept RFQ.',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'RFQ accepted.',
+      rfq: updated && updated[0],
+    });
+  } catch (err) {
+    console.error('Unexpected error accepting RFQ:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Unexpected error while accepting RFQ.',
+    });
+  }
+});
+
+// Customer rejects quote
+router.post('/:id/reject', requireAuth, async (req, res) => {
+  const userId = req.user && req.user.id;
+  const id = Number(req.params.id);
+
+  if (!id || Number.isNaN(id)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid RFQ id.',
+    });
+  }
+
+  try {
+    const { data: rfqRows, error: rfqError } = await supabase
+      .from('rfqs')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (rfqError) {
+      console.error('Error loading RFQ for reject:', rfqError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to load RFQ.',
+      });
+    }
+
+    const rfq = rfqRows && rfqRows[0];
+    if (!rfq) {
+      return res.status(404).json({
+        success: false,
+        message: 'RFQ not found.',
+      });
+    }
+
+    if (rfq.status !== 'QUOTE_SENT' && rfq.status !== 'PARTIALLY_QUOTED') {
+      return res.status(400).json({
+        success: false,
+        message: 'This RFQ is not in a quotable state.',
+      });
+    }
+
+    const { data: updated, error: updErr } = await supabase
+      .from('rfqs')
+      .update({ status: 'REJECTED_BY_CUSTOMER' })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select('*')
+      .limit(1);
+
+    if (updErr) {
+      console.error('Error rejecting RFQ:', updErr);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to reject RFQ.',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'RFQ rejected.',
+      rfq: updated && updated[0],
+    });
+  } catch (err) {
+    console.error('Unexpected error rejecting RFQ:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Unexpected error while rejecting RFQ.',
+    });
+  }
+});
 
   console.log('🔧 Mounting routes at: /api/product-catalog/rfq');
   app.use('/api/product-catalog/rfq', router);
