@@ -4,8 +4,9 @@ import styles from './PC_Product.module.css';
 import Navbar from '../PC_Navigation/PC_Navbar';
 import Footer from '../../Landing/Navigation/Footer';
 import usePageMeta from '../../../hooks/usePageMeta';
+import { useAuth } from '../../../contexts/AuthContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 interface Product {
   id: number;
@@ -16,8 +17,11 @@ interface Product {
   description: string | null;
   category: string | null;
   brand: string | null;
-  pricing_model: 'one_time_hardware' | 'hardware_plus_subscription' | 'subscription_only';
-  base_price: string | null; // numeric(12,2) comes as string from JSON
+  pricing_model:
+    | 'one_time_hardware'
+    | 'hardware_plus_subscription'
+    | 'subscription_only';
+  base_price: string | null;
   currency: string;
   is_iot_connected: boolean;
   requires_subscription: boolean;
@@ -48,6 +52,7 @@ type StockBadge = 'In stock' | 'Low stock' | 'Out of stock' | 'Made to order';
 export default function PC_Product() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -59,6 +64,7 @@ export default function PC_Product() {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+  const [showAddToCartOverlay, setShowAddToCartOverlay] = useState(false);
 
   usePageMeta(
     product ? `${product.name} - AxisFive Store` : 'AxisFive Store - Product',
@@ -73,7 +79,9 @@ export default function PC_Product() {
       try {
         const [productRes, reviewsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/product-catalog/products/${slug}`),
-          fetch(`${API_BASE_URL}/api/product-catalog/products/${slug}/reviews`),
+          fetch(
+            `${API_BASE_URL}/api/product-catalog/products/${slug}/reviews`
+          ),
         ]);
 
         const productJson = await productRes.json();
@@ -112,7 +120,6 @@ export default function PC_Product() {
     const gallery = product.gallery_image_urls || [];
     const main = product.main_image_url ? [product.main_image_url] : [];
     const all = [...main, ...gallery];
-    // Avoid duplicates
     return Array.from(new Set(all));
   }, [product]);
 
@@ -145,7 +152,7 @@ export default function PC_Product() {
       const res = await fetch(`${API_BASE_URL}/api/product-catalog/rfqs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // in case you want to tie RFQ to logged-in user
+        credentials: 'include',
         body: JSON.stringify({
           product_id: product.id,
           quantity: effectiveQuantity,
@@ -154,9 +161,15 @@ export default function PC_Product() {
 
       const data = await res.json();
       if (data.success) {
-        showNotification('success', 'Request for quote submitted. Our team will contact you.');
+        showNotification(
+          'success',
+          'Request for quote submitted. Our team will contact you.'
+        );
       } else {
-        showNotification('error', data.message || 'Failed to submit request for quote.');
+        showNotification(
+          'error',
+          data.message || 'Failed to submit request for quote.'
+        );
       }
     } catch (err) {
       console.error('Error submitting RFQ:', err);
@@ -166,10 +179,46 @@ export default function PC_Product() {
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
-    // For now, just show a toast; you can later integrate a cart context or API.
-    showNotification('success', 'Added to cart (demo). Cart integration coming soon.');
+
+    if (!isLoggedIn) {
+      navigate('/login', {
+        state: {
+          backgroundLocation: { pathname: `/products/${product.slug}` },
+        },
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/product-catalog/cart/items`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            product_id: product.id,
+            quantity: effectiveQuantity,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (data.success) {
+        setShowAddToCartOverlay(true);
+        setTimeout(() => setShowAddToCartOverlay(false), 2000);
+      } else {
+        showNotification(
+          'error',
+          data.message || 'Failed to add item to cart.'
+        );
+      }
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      showNotification('error', 'Failed to add item to cart.');
+    }
   };
 
   const formatPrice = (p: Product) => {
@@ -188,51 +237,45 @@ export default function PC_Product() {
     return sum / reviews.length;
   }, [reviews]);
 
-if (loading) {
-  return (
-    <div className={styles.page}>
-      <Navbar />
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <Navbar />
+        <main className={styles.main}>
+          <div className={styles.loadingState}>
+            <div className={styles.spinner} />
+            <p>Loading product details...</p>
+          </div>
+        </main>
+        <Footer onScrollToSection={() => {}} />
+      </div>
+    );
+  }
 
-      <main className={styles.main}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner} />
-          <p>Loading product details...</p>
-        </div>
-      </main>
-
-      <Footer onScrollToSection={() => {}} />
-    </div>
-  );
-}
-
-
-if (!product) {
-  return (
-    <div className={`${styles.page} ${styles.pageNotFound}`}>
-      <Navbar />
-
-      <main className={styles.main}>
-        <div className={styles.notFound}>
-          <h2>Product not found</h2>
-          <p>
-            The product you are looking for may have been removed or is temporarily
-            unavailable.
-          </p>
-          <button
-            type="button"
-            className={styles.btnPrimary}
-            onClick={() => navigate('/product-catalog')}
-          >
-            Back to Products
-          </button>
-        </div>
-      </main>
-
-      <Footer onScrollToSection={() => {}} />
-    </div>
-  );
-}
-
+  if (!product) {
+    return (
+      <div className={`${styles.page} ${styles.pageNotFound}`}>
+        <Navbar />
+        <main className={styles.main}>
+          <div className={styles.notFound}>
+            <h2>Product not found</h2>
+            <p>
+              The product you are looking for may have been removed or is
+              temporarily unavailable.
+            </p>
+            <button
+              type="button"
+              className={styles.btnPrimary}
+              onClick={() => navigate('/product-catalog')}
+            >
+              Back to Products
+            </button>
+          </div>
+        </main>
+        <Footer onScrollToSection={() => {}} />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -241,7 +284,10 @@ if (!product) {
       <main className={styles.main}>
         {/* Breadcrumb */}
         <div className={styles.breadcrumb}>
-          <button type="button" onClick={() => navigate('/product-catalog')}>
+          <button
+            type="button"
+            onClick={() => navigate('/product-catalog')}
+          >
             Products
           </button>
           <span>/</span>
@@ -267,11 +313,16 @@ if (!product) {
                         key={img + idx}
                         type="button"
                         className={`${styles.thumbBtn} ${
-                          idx === activeImageIndex ? styles.thumbActive : ''
+                          idx === activeImageIndex
+                            ? styles.thumbActive
+                            : ''
                         }`}
                         onClick={() => setActiveImageIndex(idx)}
                       >
-                        <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} />
+                        <img
+                          src={img}
+                          alt={`${product.name} thumbnail ${idx + 1}`}
+                        />
                       </button>
                     ))}
                   </div>
@@ -289,8 +340,12 @@ if (!product) {
             <h1 className={styles.title}>{product.name}</h1>
 
             <div className={styles.metaRow}>
-              {product.brand && <span className={styles.brand}>by {product.brand}</span>}
-              {product.sku && <span className={styles.sku}>SKU: {product.sku}</span>}
+              {product.brand && (
+                <span className={styles.brand}>by {product.brand}</span>
+              )}
+              {product.sku && (
+                <span className={styles.sku}>SKU: {product.sku}</span>
+              )}
             </div>
 
             {averageRating > 0 && (
@@ -323,7 +378,9 @@ if (!product) {
                   <span className={styles.tagBadge}>IoT Connected</span>
                 )}
                 {product.requires_subscription && (
-                  <span className={styles.tagBadge}>Subscription Required</span>
+                  <span className={styles.tagBadge}>
+                    Subscription Required
+                  </span>
                 )}
               </div>
             )}
@@ -331,15 +388,19 @@ if (!product) {
             <div className={styles.priceBlock}>
               <div className={styles.price}>{formatPrice(product)}</div>
               <div className={styles.pricingModel}>
-                {product.pricing_model === 'one_time_hardware' && 'One-time hardware purchase'}
+                {product.pricing_model === 'one_time_hardware' &&
+                  'One-time hardware purchase'}
                 {product.pricing_model === 'hardware_plus_subscription' &&
                   'Hardware + subscription'}
-                {product.pricing_model === 'subscription_only' && 'Subscription only'}
+                {product.pricing_model === 'subscription_only' &&
+                  'Subscription only'}
               </div>
             </div>
 
             {product.short_description && (
-              <p className={styles.shortDescription}>{product.short_description}</p>
+              <p className={styles.shortDescription}>
+                {product.short_description}
+              </p>
             )}
 
             {/* RFQ & Cart controls */}
@@ -349,7 +410,9 @@ if (!product) {
                 <div className={styles.qtyControls}>
                   <button
                     type="button"
-                    onClick={() => setRfqQuantity((q) => Math.max(1, q - 1))}
+                    onClick={() =>
+                      setRfqQuantity((q) => Math.max(1, q - 1))
+                    }
                   >
                     −
                   </button>
@@ -360,11 +423,17 @@ if (!product) {
                     value={effectiveQuantity}
                     onChange={(e) =>
                       setRfqQuantity(
-                        Math.max(product.min_order_qty || 1, Number(e.target.value) || 1)
+                        Math.max(
+                          product.min_order_qty || 1,
+                          Number(e.target.value) || 1
+                        )
                       )
                     }
                   />
-                  <button type="button" onClick={() => setRfqQuantity((q) => q + 1)}>
+                  <button
+                    type="button"
+                    onClick={() => setRfqQuantity((q) => q + 1)}
+                  >
                     +
                   </button>
                 </div>
@@ -381,9 +450,14 @@ if (!product) {
                   type="button"
                   className={styles.btnPrimary}
                   onClick={handleRFQSubmit}
-                  disabled={submittingRFQ || product.stock_status === 'out_of_stock'}
+                  disabled={
+                    submittingRFQ ||
+                    product.stock_status === 'out_of_stock'
+                  }
                 >
-                  {submittingRFQ ? 'Sending RFQ...' : 'Request for Quote'}
+                  {submittingRFQ
+                    ? 'Sending RFQ...'
+                    : 'Request for Quote'}
                 </button>
 
                 <button
@@ -408,7 +482,9 @@ if (!product) {
             <div className={styles.keyPoints}>
               <h3>Why this product</h3>
               <ul>
-                {product.is_iot_connected && <li>Fully IoT-ready hardware.</li>}
+                {product.is_iot_connected && (
+                  <li>Fully IoT-ready hardware.</li>
+                )}
                 {product.requires_subscription && (
                   <li>Supports managed subscription services.</li>
                 )}
@@ -424,10 +500,13 @@ if (!product) {
           <div className={styles.detailsLeft}>
             <h2>Product details</h2>
             {product.description ? (
-              <p className={styles.longDescription}>{product.description}</p>
+              <p className={styles.longDescription}>
+                {product.description}
+              </p>
             ) : (
               <p className={styles.longDescriptionMuted}>
-                Detailed description coming soon. Contact us for more information.
+                Detailed description coming soon. Contact us for more
+                information.
               </p>
             )}
 
@@ -441,29 +520,38 @@ if (!product) {
                 </span>
               </div>
               <div className={styles.specItem}>
-                <span className={styles.specLabel}>IoT Connected</span>
+                <span className={styles.specLabel}>
+                  IoT Connected
+                </span>
                 <span className={styles.specValue}>
                   {product.is_iot_connected ? 'Yes' : 'No'}
                 </span>
               </div>
               <div className={styles.specItem}>
-                <span className={styles.specLabel}>Requires Subscription</span>
+                <span className={styles.specLabel}>
+                  Requires Subscription
+                </span>
                 <span className={styles.specValue}>
                   {product.requires_subscription ? 'Yes' : 'No'}
                 </span>
               </div>
               <div className={styles.specItem}>
                 <span className={styles.specLabel}>Stock status</span>
-                <span className={styles.specValue}>{stockBadge || 'Unknown'}</span>
+                <span className={styles.specValue}>
+                  {stockBadge || 'Unknown'}
+                </span>
               </div>
               <div className={styles.specItem}>
                 <span className={styles.specLabel}>Created</span>
                 <span className={styles.specValue}>
-                  {new Date(product.created_at).toLocaleDateString('en-PH', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
+                  {new Date(product.created_at).toLocaleDateString(
+                    'en-PH',
+                    {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    }
+                  )}
                 </span>
               </div>
             </div>
@@ -483,22 +571,30 @@ if (!product) {
                     <span className={styles.reviewScoreValue}>
                       {averageRating.toFixed(1)}
                     </span>
-                    <span className={styles.reviewScoreOutOf}>/ 5</span>
+                    <span className={styles.reviewScoreOutOf}>
+                      / 5
+                    </span>
                   </div>
                   <div className={styles.reviewScoreStars}>
                     <span className={styles.stars}>
                       {'★'.repeat(Math.round(averageRating))}
-                      {'☆'.repeat(5 - Math.round(averageRating))}
+                      {'☆'.repeat(
+                        5 - Math.round(averageRating)
+                      )}
                     </span>
                     <span className={styles.reviewCount}>
-                      {reviews.length} review{reviews.length === 1 ? '' : 's'}
+                      {reviews.length} review
+                      {reviews.length === 1 ? '' : 's'}
                     </span>
                   </div>
                 </div>
 
                 <div className={styles.reviewList}>
                   {reviews.map((r) => (
-                    <article key={r.id} className={styles.reviewCard}>
+                    <article
+                      key={r.id}
+                      className={styles.reviewCard}
+                    >
                       <div className={styles.reviewHeader}>
                         <span className={styles.reviewStars}>
                           {'★'.repeat(r.rating)}
@@ -514,12 +610,15 @@ if (!product) {
                       <div className={styles.reviewMeta}>
                         <span>
                           {r.user
-                            ? `${r.user.first_name || ''} ${r.user.last_name || ''}`.trim() ||
-                              'Customer'
+                            ? `${r.user.first_name || ''} ${
+                                r.user.last_name || ''
+                              }`.trim() || 'Customer'
                             : 'Customer'}
                         </span>
                         <span>
-                          {new Date(r.created_at).toLocaleDateString('en-PH', {
+                          {new Date(
+                            r.created_at
+                          ).toLocaleDateString('en-PH', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
@@ -535,7 +634,35 @@ if (!product) {
         </section>
       </main>
 
-      {/* Notification */}
+      {/* Big centered "Added to cart" overlay */}
+      {showAddToCartOverlay && (
+        <div className={styles.cartOverlay}>
+          <div className={styles.cartOverlayContent}>
+            <h2>Added to cart</h2>
+            <p>
+              {product.name} (x{effectiveQuantity})
+            </p>
+            <div className={styles.cartOverlayActions}>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={() => navigate('/cart')}
+              >
+                View cart
+              </button>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => setShowAddToCartOverlay(false)}
+              >
+                Continue shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Existing toast notification */}
       {notification && (
         <div
           className={`${styles.notification} ${

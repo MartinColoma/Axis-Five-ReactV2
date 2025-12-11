@@ -23,16 +23,17 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "http://localhost:5174", // Add backup local port
+      "http://localhost:5174",
       "https://axis-five-solution.onrender.com",
-      process.env.FRONTEND_URL, // Add this env variable in Render
-    ].filter(Boolean), // Remove undefined values
-    credentials: true, // ✅ Critical for cookies
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      process.env.FRONTEND_URL,
+    ].filter(Boolean),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Set-Cookie'],
   })
 );
+
 
 // 🔥 3. JSON parser
 app.use(express.json());
@@ -58,7 +59,10 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // =========================================
 const contact_us = require("./routes/landing/contact-us");
 const auth = require("./routes/auth/auth");
+//product catalog
 const prod_catalog = require('./routes/prod-catalog/product-catalog')
+const prod_cart = require ('./routes/prod-catalog/product-cart')
+//admin
 const adminUser = require('./routes/admin/users/users')
 const adminProduct = require('./routes/admin/products/products')
 
@@ -90,7 +94,8 @@ console.log("✅ Auth route mounted");
 // 🔹 Product-Catalog Routes
 prod_catalog(app);
 console.log("✅ Product-Catalog route mounted");
-
+prod_cart(app);
+console.log("✅ Product Cart route mounted");
 // 🔹 Admin Routes
 adminUser(app);
 console.log("✅ Admin User route mounted");

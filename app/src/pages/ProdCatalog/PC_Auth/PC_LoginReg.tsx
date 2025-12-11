@@ -26,7 +26,7 @@ type AuthMode = 'login' | 'register';
 type RegisterStep = 1 | 2;
 
 // API Configuration
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_LOCAL_SERVER; // VITE_API_LOCAL_SERVER // VITE_API_BASE_URL
 
 // Create axios instance with default config
 const api = axios.create({

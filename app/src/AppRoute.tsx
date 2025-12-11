@@ -1,3 +1,4 @@
+// AppRoutes.tsx
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import type { FC } from 'react';
@@ -7,12 +8,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Landing Page
 import Home from './pages/Landing/Home/Home';
 import About from './pages/Landing/About/About';
+
 // Product Catalog
 import ProdCatalog from './pages/ProdCatalog/PC_Home/PC_Home';
 import AuthModal from './pages/ProdCatalog/PC_Auth/PC_LoginReg';
 import PC_Product from './pages/ProdCatalog/PC_Product/PC_Product';
-
-// User Pages
+import PC_Cart from './pages/ProdCatalog/PC_Product/Cart/Cart';
 
 // Admin Pages
 import AdminHome from './pages/Admin/AdminHome/AdminHome';
@@ -23,19 +24,15 @@ const AppRoutes: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Handle modal background state (for modal routing)
   const state = location.state as { backgroundLocation?: Location };
   const background = state?.backgroundLocation;
 
-  // Centralized close handler for auth modals
   const handleAuthModalClose = () => {
     const currentState = location.state as { backgroundLocation?: Location };
 
     if (currentState?.backgroundLocation) {
-      // Go back to the page that opened the modal
       navigate(currentState.backgroundLocation.pathname, { replace: true });
     } else {
-      // Safe fallback to a public route (avoid protected routes to prevent loops)
       navigate('/product-catalog', { replace: true });
     }
   };
@@ -47,8 +44,11 @@ const AppRoutes: FC = () => {
         {/* AxisFive Company Pages - Public */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+
+        {/* Store */}
         <Route path="/product-catalog" element={<ProdCatalog />} />
         <Route path="/products/:slug" element={<PC_Product />} />
+        <Route path="/cart" element={<PC_Cart />} />
 
         {/* Protected Admin Routes */}
         <Route
@@ -77,26 +77,25 @@ const AppRoutes: FC = () => {
         />
       </Routes>
 
-      {/* Modal routes (rendered as portals on top of background) */}
+      {/* Modal routes (login/register) */}
       {background && (
         <Routes>
           <Route
             path="/login"
             element={createPortal(
               <AuthModal
-                isOpen={true}
+                isOpen
                 onClose={handleAuthModalClose}
                 initialMode="login"
               />,
               document.body
             )}
           />
-
           <Route
             path="/register"
             element={createPortal(
               <AuthModal
-                isOpen={true}
+                isOpen
                 onClose={handleAuthModalClose}
                 initialMode="register"
               />,
@@ -109,13 +108,10 @@ const AppRoutes: FC = () => {
   );
 };
 
-// Wrap the entire app routes with AuthProvider
-const AppRoutesWithAuth: FC = () => {
-  return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  );
-};
+const AppRoutesWithAuth: FC = () => (
+  <AuthProvider>
+    <AppRoutes />
+  </AuthProvider>
+);
 
 export default AppRoutesWithAuth;
