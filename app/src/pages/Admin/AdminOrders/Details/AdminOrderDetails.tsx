@@ -5,7 +5,7 @@ import Navbar from '../../../ProdCatalog/PC_Navigation/PC_Navbar';
 import { useAuth } from '../../../../contexts/AuthContext';
 import styles from './AdminOrderDetails.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 type OrderStatus = 'AWAITING_PICKUP' | 'READY_FOR_PICKUP' | 'COMPLETED' | 'CANCELLED';
 
