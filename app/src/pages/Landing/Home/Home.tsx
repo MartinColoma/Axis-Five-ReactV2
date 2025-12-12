@@ -42,7 +42,7 @@ const Home: React.FC = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/landing/contact-us`, //VITE_API_LOCAL_SERVER //VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL}/api/landing/contact-us`, 
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

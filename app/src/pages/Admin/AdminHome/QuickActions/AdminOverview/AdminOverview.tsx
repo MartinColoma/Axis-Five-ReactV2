@@ -37,7 +37,7 @@ type ProductSortColumn =
   | 'created_at';
 type SortDirection = 'asc' | 'desc';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;  //VITE_API_LOCAL_SERVER //VITE_API_BASE_URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;  
 
 const AdminOverview: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
