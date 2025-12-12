@@ -135,11 +135,70 @@
   border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-/* header styling only (no separate grid here!) */
-.headerRow {
-  background: rgba(15, 23, 42, 0.95);
-  color: #9ca3af;
+/* Top header row: title + filters */
+.headerRowTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
+
+/* Keep existing .title; it will sit on the left */
+
+/* Filters container: search + dropdown */
+.filtersRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Search input */
+.searchInput {
+  min-width: 220px;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.searchInput::placeholder {
+  color: #6b7280;
+}
+
+/* Status dropdown */
+.select {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+}
+
+/* Make filters stack on small screens */
+@media (max-width: 768px) {
+  .headerRowTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filtersRow {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .searchInput {
+    flex: 1 1 160px;
+  }
+
+  .select {
+    flex: 0 0 auto;
+  }
+}
+
 
 /* columns: keep them shrinkable so content can't blow out tracks */
 .colId,
@@ -293,4 +352,36 @@
 
 .iconBtnPrimary:hover {
   filter: brightness(1.05);
+}
+.paginationRow {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.pageBtn {
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageBtn:not(:disabled):hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.pageInfo {
+  white-space: nowrap;
 }

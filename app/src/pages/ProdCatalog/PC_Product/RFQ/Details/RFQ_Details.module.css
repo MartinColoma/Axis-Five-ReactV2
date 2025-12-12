@@ -50,6 +50,8 @@
   filter: brightness(1.05);
 }
 
+/* Page layout */
+
 .page {
   min-height: 100vh;
   background: #05070a;
@@ -69,7 +71,7 @@
   padding: 0 1.5rem;
 }
 
-/* shared states */
+/* Shared states */
 
 .centerBox {
   margin-top: 3rem;
@@ -107,7 +109,7 @@
   }
 }
 
-/* breadcrumb */
+/* Breadcrumb */
 
 .breadcrumb {
   display: flex;
@@ -131,7 +133,7 @@
   color: #e5e7eb;
 }
 
-/* header */
+/* Header */
 
 .header {
   margin-bottom: 1.25rem;
@@ -153,7 +155,7 @@
   color: #9ca3af;
 }
 
-/* sections */
+/* Card sections */
 
 .card {
   background: #020617;
@@ -168,7 +170,7 @@
   margin-bottom: 0.65rem;
 }
 
-/* timeline */
+/* Timeline */
 
 .timeline {
   list-style: none;
@@ -215,7 +217,7 @@
   color: #6b7280;
 }
 
-/* layout */
+/* Layout (two-column) */
 
 .layout {
   display: grid;
@@ -224,7 +226,7 @@
   align-items: flex-start;
 }
 
-/* items */
+/* Items list */
 
 .itemList {
   list-style: none;
@@ -313,6 +315,15 @@
   color: #d1d5db;
 }
 
+/* Catalog base total (lighter than quoted total) */
+.itemBaseLineTotal {
+  color: #9ca3af;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+/* Items footer */
+
 .itemsFooter {
   margin-top: 0.75rem;
   padding-top: 0.5rem;
@@ -328,7 +339,7 @@
   color: #9ca3af;
 }
 
-/* details */
+/* Details panel */
 
 .detailsGrid {
   margin: 0;
@@ -353,7 +364,7 @@
   color: #e5e7eb;
 }
 
-/* message */
+/* Message */
 
 .messageBox {
   margin-top: 1rem;
@@ -368,7 +379,7 @@
   color: #dbeafe;
 }
 
-/* actions */
+/* Actions */
 
 .actionsRow {
   margin-top: 1rem;
@@ -377,7 +388,7 @@
   gap: 0.6rem;
 }
 
-/* buttons */
+/* Buttons */
 
 .btnPrimary {
   padding: 0.45rem 1.2rem;
@@ -408,7 +419,7 @@
   background: rgba(15, 23, 42, 0.95);
 }
 
-/* error alert */
+/* Error alert */
 
 .alertError {
   margin-bottom: 0.75rem;
@@ -420,7 +431,7 @@
   font-size: 0.85rem;
 }
 
-/* responsive */
+/* Responsive */
 
 @media (max-width: 900px) {
   .layout {

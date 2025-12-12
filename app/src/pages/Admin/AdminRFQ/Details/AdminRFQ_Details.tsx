@@ -17,7 +17,6 @@ type RFQStatus =
   | 'EXPIRED'
   | 'CONVERTED_TO_ORDER';
 
-
 interface RFQItem {
   id: number;
   rfq_id: number;
@@ -30,11 +29,14 @@ interface RFQItem {
   line_status: string;
   created_at: string;
   updated_at: string;
+  subscription_enabled?: boolean;
   product?: {
     name: string;
     slug: string;
     main_image_url: string | null;
     base_price: string | null;
+    pricing_model?: string | null;
+    requires_subscription?: boolean | null;
   };
 }
 
@@ -65,10 +67,13 @@ export default function AdminRFQ_Details() {
 
   const [rfq, setRfq] = useState<RFQ | null>(null);
   const [items, setItems] = useState<RFQItem[]>([]);
+  const [quoteItems, setQuoteItems] = useState<RFQItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [savingQuote, setSavingQuote] = useState(false);
+  const [quoteSuccessMsg, setQuoteSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -95,16 +100,21 @@ export default function AdminRFQ_Details() {
           setErrorMsg(data.message || 'Failed to load RFQ.');
           setRfq(null);
           setItems([]);
+          setQuoteItems([]);
           return;
         }
 
         setRfq(data.rfq);
-        setItems(Array.isArray(data.items) ? data.items : data.rfq.items || []);
+        const loadedItems: RFQItem[] =
+          Array.isArray(data.items) ? data.items : data.rfq.items || [];
+        setItems(loadedItems);
+        setQuoteItems(loadedItems);
       } catch (err) {
         console.error('Error loading RFQ details:', err);
         setErrorMsg('Failed to load RFQ details. Please try again.');
         setRfq(null);
         setItems([]);
+        setQuoteItems([]);
       } finally {
         setLoading(false);
       }
@@ -113,31 +123,30 @@ export default function AdminRFQ_Details() {
     fetchRFQ();
   }, [id, authLoading, isLoggedIn, navigate]);
 
-const friendlyStatus = useMemo(() => {
-  if (!rfq) return 'RFQ Submitted – Pending review';
+  const friendlyStatus = useMemo(() => {
+    if (!rfq) return 'RFQ Submitted – Pending review';
 
-  switch (rfq.status) {
-    case 'PENDING_REVIEW':
-      return 'RFQ Submitted – Pending review';
-    case 'UNDER_REVIEW':
-      return 'Under review by AxisFive';
-    case 'QUOTE_SENT':
-      return 'Quote sent – Awaiting your response';
-    case 'PARTIALLY_QUOTED':
-      return 'Partially quoted – Some items pending';
-    case 'REJECTED_BY_ADMIN':
-      return 'Rejected by AxisFive team';
-    case 'REJECTED_BY_CUSTOMER':
-      return 'Rejected – You declined this quote';
-    case 'EXPIRED':
-      return 'Quote expired';
-    case 'CONVERTED_TO_ORDER':
-      return 'Order created from this RFQ';
-    default:
-      return 'RFQ status unknown';
-  }
-}, [rfq]);
-
+    switch (rfq.status) {
+      case 'PENDING_REVIEW':
+        return 'RFQ Submitted – Pending review';
+      case 'UNDER_REVIEW':
+        return 'Under review by AxisFive';
+      case 'QUOTE_SENT':
+        return 'Quote sent – Awaiting customer response';
+      case 'PARTIALLY_QUOTED':
+        return 'Partially quoted – Some items pending';
+      case 'REJECTED_BY_ADMIN':
+        return 'Rejected by AxisFive team';
+      case 'REJECTED_BY_CUSTOMER':
+        return 'Rejected – Customer declined this quote';
+      case 'EXPIRED':
+        return 'Quote expired';
+      case 'CONVERTED_TO_ORDER':
+        return 'Order created from this RFQ';
+      default:
+        return 'RFQ status unknown';
+    }
+  }, [rfq]);
 
   const timelineSteps = useMemo(
     () => [
@@ -152,28 +161,26 @@ const friendlyStatus = useMemo(() => {
     []
   );
 
-const activeTimelineIndex = useMemo(() => {
-  if (!rfq) return 0;
-  switch (rfq.status) {
-    case 'PENDING_REVIEW':
-      return 0;
-    case 'UNDER_REVIEW':
-      return 1;           // activates "Under Review"
-    case 'QUOTE_SENT':
-    case 'PARTIALLY_QUOTED':
-      return 2;
-    case 'CONVERTED_TO_ORDER':
-      return 4;
-    case 'EXPIRED':
-    case 'REJECTED_BY_ADMIN':
-    case 'REJECTED_BY_CUSTOMER':
-      return 2;
-    default:
-      return 0;
-  }
-}, [rfq]);
-
-
+  const activeTimelineIndex = useMemo(() => {
+    if (!rfq) return 0;
+    switch (rfq.status) {
+      case 'PENDING_REVIEW':
+        return 0;
+      case 'UNDER_REVIEW':
+        return 1;
+      case 'QUOTE_SENT':
+      case 'PARTIALLY_QUOTED':
+        return 2;
+      case 'CONVERTED_TO_ORDER':
+        return 4;
+      case 'EXPIRED':
+      case 'REJECTED_BY_ADMIN':
+      case 'REJECTED_BY_CUSTOMER':
+        return 2;
+      default:
+        return 0;
+    }
+  }, [rfq]);
 
   const totalQuantity = useMemo(
     () => items.reduce((sum, it) => sum + (it.quantity || 0), 0),
@@ -201,90 +208,131 @@ const activeTimelineIndex = useMemo(() => {
       maximumFractionDigits: 2,
     })}`;
 
-const canCancel =
-  !!rfq &&
-  (rfq.status === 'PENDING_REVIEW' || rfq.status === 'PARTIALLY_QUOTED');
+  const canCancel =
+    !!rfq &&
+    (rfq.status === 'PENDING_REVIEW' ||
+      rfq.status === 'PARTIALLY_QUOTED' ||
+      rfq.status === 'UNDER_REVIEW');
 
-const handleCancelRFQ = async () => {
-  if (!rfq || !canCancel) return;
-  setIsCancelling(true);
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/api/admin/rfq/${rfq.id}/cancel`,
-      {
-        method: 'PATCH',
-        credentials: 'include',
+  const handleCancelRFQ = async () => {
+    if (!rfq || !canCancel) return;
+    setIsCancelling(true);
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/admin/rfq/${rfq.id}/cancel`,
+        {
+          method: 'PATCH',
+          credentials: 'include',
+        }
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !data.rfq) {
+        setErrorMsg(data.message || 'Failed to cancel RFQ.');
+        return;
       }
-    );
-    const data = await res.json();
 
-    if (!res.ok || !data.success || !data.rfq) {
-      setErrorMsg(data.message || 'Failed to cancel RFQ.');
+      setRfq(data.rfq);
+      setErrorMsg(null);
+      setShowCancelModal(false);
+    } catch (err) {
+      console.error('Error cancelling RFQ:', err);
+      setErrorMsg('Failed to cancel RFQ. Please try again.');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const updateQuoteItem = (index: number, patch: Partial<RFQItem>) => {
+    setQuoteItems((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], ...patch };
+      return copy;
+    });
+  };
+
+  const hasAnyPrice = quoteItems.some((it) => {
+    const hasUnit = it.quoted_unit_price && it.quoted_unit_price !== '';
+    const hasTotal = it.quoted_total_price && it.quoted_total_price !== '';
+    return !!hasUnit || !!hasTotal;
+  });
+
+  const handleSaveQuote = async () => {
+    if (!rfq) return;
+
+    // Require at least unit or total price on each item
+    const missingPrices = quoteItems.filter((it) => {
+      const hasUnit =
+        it.quoted_unit_price != null && it.quoted_unit_price !== '';
+      const hasTotal =
+        it.quoted_total_price != null && it.quoted_total_price !== '';
+      return !hasUnit && !hasTotal;
+    });
+
+    if (missingPrices.length > 0) {
+      setErrorMsg(
+        'Please enter a unit price or total price for all items before sending the quote.'
+      );
       return;
     }
 
-    setRfq(data.rfq);
+    setSavingQuote(true);
     setErrorMsg(null);
-    setShowCancelModal(false);
-  } catch (err) {
-    console.error('Error cancelling RFQ:', err);
-    setErrorMsg('Failed to cancel RFQ. Please try again.');
-  } finally {
-    setIsCancelling(false);
-  }
-};
+    setQuoteSuccessMsg(null);
 
+    try {
+      const payloadItems = quoteItems.map((it) => ({
+        id: it.id,
+        quoted_unit_price:
+          it.quoted_unit_price != null && it.quoted_unit_price !== ''
+            ? Number(it.quoted_unit_price)
+            : null,
+        quoted_total_price:
+          it.quoted_total_price != null && it.quoted_total_price !== ''
+            ? Number(it.quoted_total_price)
+            : null,
+        line_lead_time_days:
+          it.line_lead_time_days != null ? Number(it.line_lead_time_days) : null,
+        currency: it.currency,
+        subscription_enabled: !!it.subscription_enabled,
+      }));
 
-if (authLoading || loading) {
-  return (
-    <div className={styles.page}>
-      <Navbar />
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <div className={styles.centerBox}>
-            <div className={styles.spinner} />
-            <p>Loading RFQ details...</p>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
+      const res = await fetch(
+        `${API_BASE_URL}/api/admin/rfq/${rfq.id}/quote`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: payloadItems }),
+        }
+      );
+      const data = await res.json();
 
-if (!rfq) {
-  return (
-    <div className={styles.page}>
-      <Navbar />
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <div className={styles.centerBox}>
-            <h2 className={styles.subtitle}>RFQ not found</h2>
-            <p className={styles.textMuted}>
-              This request for quote may have been removed or you do not have access to it.
-            </p>
-            <button
-              type="button"
-              className={styles.btnPrimary}
-              onClick={() => navigate('/admin/rfqs')}
-            >
-              Back to RFQs
-            </button>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.message || 'Failed to save quote.');
+        return;
+      }
 
+      if (data.rfq) setRfq(data.rfq);
+      setQuoteSuccessMsg('Quote saved and sent to customer.');
+    } catch (err) {
+      console.error('Error saving quote:', err);
+      setErrorMsg('Failed to save quote. Please try again.');
+    } finally {
+      setSavingQuote(false);
+    }
+  };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className={styles.page}>
         <Navbar />
         <main className={styles.main}>
-          <div className={styles.centerBox}>
-            <div className={styles.spinner} />
-            <p>Loading RFQ details...</p>
+          <div className={styles.container}>
+            <div className={styles.centerBox}>
+              <div className={styles.spinner} />
+              <p>Loading RFQ details...</p>
+            </div>
           </div>
         </main>
       </div>
@@ -296,18 +344,21 @@ if (!rfq) {
       <div className={styles.page}>
         <Navbar />
         <main className={styles.main}>
-          <div className={styles.centerBox}>
-            <h2 className={styles.subtitle}>RFQ not found</h2>
-            <p className={styles.textMuted}>
-              This request for quote may have been removed or you do not have access to it.
-            </p>
-            <button
-              type="button"
-              className={styles.btnPrimary}
-              onClick={() => navigate('/admin/rfqs')}
-            >
-              Back to RFQs
-            </button>
+          <div className={styles.container}>
+            <div className={styles.centerBox}>
+              <h2 className={styles.subtitle}>RFQ not found</h2>
+              <p className={styles.textMuted}>
+                This request for quote may have been removed or you do not have
+                access to it.
+              </p>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={() => navigate('/admin/rfqs')}
+              >
+                Back to RFQs
+              </button>
+            </div>
           </div>
         </main>
       </div>
@@ -320,16 +371,14 @@ if (!rfq) {
 
       <main className={styles.main}>
         <div className={styles.container}>
-            {errorMsg && (
-                <div className={styles.alertError}>
-                {errorMsg}
-                </div>
-            )}
-          {/* Header path like /account/rfqs/RFQ-123 */}
+          {errorMsg && (
+            <div className={styles.alertError}>{errorMsg}</div>
+          )}
+
           <div className={styles.breadcrumb}>
             <button
               type="button"
-              onClick={() => navigate('/account/rfqs')}
+              onClick={() => navigate('/admin/rfqs')}
             >
               RFQs
             </button>
@@ -338,18 +387,40 @@ if (!rfq) {
           </div>
 
           <div className={styles.header}>
-            <h1 className={styles.title}>RFQ #{rfq.id}</h1>
-            <p className={styles.statusText}>{friendlyStatus}</p>
-            <p className={styles.timestamp}>
-              Submitted on{' '}
-              {new Date(rfq.created_at).toLocaleString('en-PH', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </p>
+            <div>
+              <h1 className={styles.title}>RFQ #{rfq.id}</h1>
+              <p className={styles.statusText}>{friendlyStatus}</p>
+              <p className={styles.timestamp}>
+                Submitted on{' '}
+                {new Date(rfq.created_at).toLocaleString('en-PH', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
+            </div>
+
+            <div className={styles.headerActions}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => navigate('/admin/rfqs')}
+              >
+                Back to RFQs
+              </button>
+
+              {canCancel && (
+                <button
+                  type="button"
+                  className={styles.btnDanger}
+                  onClick={() => setShowCancelModal(true)}
+                >
+                  Cancel RFQ
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Timeline */}
@@ -388,14 +459,25 @@ if (!rfq) {
             <div className={styles.card}>
               <h2 className={styles.sectionTitle}>Selected products</h2>
               {items.length === 0 ? (
-                <p className={styles.textMuted}>No line items were found for this RFQ.</p>
+                <p className={styles.textMuted}>
+                  No line items were found for this RFQ.
+                </p>
               ) : (
                 <>
                   <ul className={styles.itemList}>
                     {items.map((it) => {
+                      const basePriceNum = it.product?.base_price
+                        ? Number(it.product.base_price)
+                        : null;
+
+                      const baseLineTotal =
+                        basePriceNum != null
+                          ? basePriceNum * it.quantity
+                          : null;
+
                       const hasQuote =
                         it.quoted_total_price || it.quoted_unit_price;
-                      const estLineTotal = hasQuote
+                      const quotedLineTotal = hasQuote
                         ? Number(
                             it.quoted_total_price ||
                               Number(it.quoted_unit_price || 0) *
@@ -403,22 +485,27 @@ if (!rfq) {
                           ) || 0
                         : null;
 
+                      const isSubscriptionProduct =
+                        !!it.product?.requires_subscription;
+
                       return (
                         <li key={it.id} className={styles.itemRow}>
-                            {it.product && it.product.main_image_url && (
+                          {it.product && it.product.main_image_url && (
                             <button
-                                type="button"
-                                className={styles.thumbButton}
-                                onClick={() => navigate(`/products/${it.product!.slug}`)}
+                              type="button"
+                              className={styles.thumbButton}
+                              onClick={() =>
+                                navigate(`/products/${it.product!.slug}`)
+                              }
                             >
-                                <div className={styles.thumb}>
+                              <div className={styles.thumb}>
                                 <img
-                                    src={it.product.main_image_url}
-                                    alt={it.product.name}
+                                  src={it.product.main_image_url}
+                                  alt={it.product.name}
                                 />
-                                </div>
+                              </div>
                             </button>
-                            )}
+                          )}
 
                           <div className={styles.itemMeta}>
                             <button
@@ -429,18 +516,51 @@ if (!rfq) {
                                 navigate(`/products/${it.product.slug}`)
                               }
                             >
-                              {it.product?.name || `Product #${it.product_id}`}
+                              {it.product?.name ||
+                                `Product #${it.product_id}`}
                             </button>
+
                             <div className={styles.itemMetaRow}>
                               <span className={styles.itemQty}>
                                 Qty {it.quantity}
                               </span>
-                              {estLineTotal !== null && (
-                                <span className={styles.itemLineTotal}>
-                                  {formatMoney(estLineTotal)}
+
+                              {basePriceNum != null && (
+                                <span className={styles.itemBasePrice}>
+                                  Base: {formatMoney(basePriceNum)}
+                                </span>
+                              )}
+
+                              {baseLineTotal != null && (
+                                <span className={styles.itemBaseLineTotal}>
+                                  Base line total:{' '}
+                                  {formatMoney(baseLineTotal)}
                                 </span>
                               )}
                             </div>
+
+                            {quotedLineTotal !== null && (
+                              <div className={styles.itemMetaRow}>
+                                <span className={styles.itemMetaLabel}>
+                                  Quoted line total:
+                                </span>
+                                <span className={styles.itemLineTotal}>
+                                  {formatMoney(quotedLineTotal)}
+                                </span>
+                              </div>
+                            )}
+
+                            {isSubscriptionProduct && (
+                              <div className={styles.itemMetaRow}>
+                                <span className={styles.itemMetaLabel}>
+                                  Subscription:
+                                </span>
+                                <span className={styles.itemMetaValue}>
+                                  Required for this device
+                                </span>
+                              </div>
+                            )}
+
                             {it.line_lead_time_days !== null && (
                               <div className={styles.itemMetaRow}>
                                 <span className={styles.itemMetaLabel}>
@@ -485,12 +605,8 @@ if (!rfq) {
                   <dt>Contact</dt>
                   <dd>
                     {rfq.contact_name || '—'}
-                    {rfq.contact_email
-                      ? ` · ${rfq.contact_email}`
-                      : ''}
-                    {rfq.contact_phone
-                      ? ` · ${rfq.contact_phone}`
-                      : ''}
+                    {rfq.contact_email ? ` · ${rfq.contact_email}` : ''}
+                    {rfq.contact_phone ? ` · ${rfq.contact_phone}` : ''}
                   </dd>
                 </div>
                 <div className={styles.detailRow}>
@@ -506,68 +622,180 @@ if (!rfq) {
                   <dd>{rfq.additional_notes || '—'}</dd>
                 </div>
               </dl>
-                <div className={styles.actionsRow}>
-                <button
-                    type="button"
-                    className={styles.btnSecondary}
-                    onClick={() => navigate('/product-catalog')}
-                >
-                    Back to catalog
-                </button>
-
-                {canCancel && (
-                    <button
-                    type="button"
-                    className={styles.btnSecondary}
-                    onClick={() => setShowCancelModal(true)}
-                    >
-                    Cancel request
-                    </button>
-                )}
-
-                <button
-                    type="button"
-                    className={styles.btnPrimary}
-                    onClick={() => navigate('/admin/rfqs')}
-                >
-                    View all RFQs
-                </button>
-                </div>
-
             </div>
+          </section>
+
+          {/* Seller quote panel */}
+          <section className={styles.card}>
+            <h2 className={styles.sectionTitle}>Seller quote</h2>
+            <p className={styles.textMuted}>
+              Set unit prices, totals, lead times, and subscriptions for each item, then send the quote to the customer.
+            </p>
+
+            {quoteSuccessMsg && (
+              <div className={styles.alertSuccess}>{quoteSuccessMsg}</div>
+            )}
+
+            {quoteItems.length === 0 ? (
+              <p className={styles.textMuted}>
+                No items to quote for this RFQ.
+              </p>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveQuote();
+                }}
+                className={styles.quoteForm}
+              >
+                <div className={styles.quoteHeaderRow}>
+                  <span>Product</span>
+                  <span>Qty</span>
+                  <span>Base price</span>
+                  <span>Unit price</span>
+                  <span>Total price</span>
+                  <span>Lead time (days)</span>
+                  <span>Subscription</span>
+                </div>
+{quoteItems.map((it, index) => {
+  const basePriceNum = it.product?.base_price
+    ? Number(it.product.base_price)
+    : null;
+
+  // Auto-computed line total from unit price * qty
+  const autoLineTotal =
+    it.quoted_unit_price != null && it.quoted_unit_price !== ''
+      ? Number(it.quoted_unit_price) * it.quantity
+      : null;
+
+  // const displayLineTotal =
+  //   it.quoted_total_price != null && it.quoted_total_price !== ''
+  //     ? Number(it.quoted_total_price)
+  //     : autoLineTotal;
+
+  return (
+    <div key={it.id} className={styles.quoteRow}>
+      <div className={styles.quoteProductCol}>
+        {it.product?.name || `Product #${it.product_id}`}
+      </div>
+      <div className={styles.quoteQtyCol}>{it.quantity}</div>
+
+      <div className={styles.quoteBasePriceCol}>
+        {basePriceNum != null ? formatMoney(basePriceNum) : '—'}
+      </div>
+
+      <div className={styles.quoteInputCol}>
+        <input
+          type="number"
+          min={0}
+          step="0.01"
+          className={styles.quoteInput}
+          value={it.quoted_unit_price ?? ''}
+          onChange={(e) =>
+            updateQuoteItem(index, {
+              quoted_unit_price:
+                e.target.value === '' ? null : e.target.value,
+            })
+          }
+        />
+      </div>
+
+      <div className={styles.quoteInputCol}>
+        <input
+          type="number"
+          min={0}
+          step="0.01"
+          className={styles.quoteInput}
+          value={
+            it.quoted_total_price ??
+            (autoLineTotal != null ? autoLineTotal.toFixed(2) : '')
+          }
+          onChange={(e) =>
+            updateQuoteItem(index, {
+              quoted_total_price:
+                e.target.value === '' ? null : e.target.value,
+            })
+          }
+        />
+      </div>
+
+      <div className={styles.quoteInputCol}>
+        <input
+          type="number"
+          min={0}
+          step={1}
+          className={styles.quoteInput}
+          value={it.line_lead_time_days ?? ''}
+          onChange={(e) =>
+            updateQuoteItem(index, {
+              line_lead_time_days:
+                e.target.value === '' ? null : Number(e.target.value),
+            })
+          }
+        />
+      </div>
+
+      <label className={styles.quoteSubscriptionCol}>
+        <input
+          type="checkbox"
+          checked={!!it.subscription_enabled}
+          onChange={(e) =>
+            updateQuoteItem(index, {
+              subscription_enabled: e.target.checked,
+            })
+          }
+        />
+        Subscribed
+      </label>
+    </div>
+  );
+})}
+
+
+                <div className={styles.quoteActionsRow}>
+                  <button
+                    type="submit"
+                    className={styles.btnPrimary}
+                    disabled={savingQuote || !hasAnyPrice}
+                  >
+                    {savingQuote ? 'Saving quote...' : 'Save & send quote'}
+                  </button>
+                </div>
+              </form>
+            )}
           </section>
         </div>
       </main>
+
       {showCancelModal && (
         <div className={styles.modalOverlay} role="dialog" aria-modal="true">
-            <div className={styles.modal}>
+          <div className={styles.modal}>
             <h2 className={styles.modalTitle}>Cancel RFQ?</h2>
             <p className={styles.modalText}>
-                This will cancel your request and notify AxisFive. You will no longer
-                receive a quote for this RFQ.
+              This will cancel this RFQ for the customer. They will no longer
+              receive a quote for this RFQ.
             </p>
             <div className={styles.modalActions}>
-                <button
+              <button
                 type="button"
                 className={styles.btnSecondary}
                 onClick={() => setShowCancelModal(false)}
                 disabled={isCancelling}
-                >
+              >
                 Keep RFQ
-                </button>
-                <button
+              </button>
+              <button
                 type="button"
                 className={styles.btnDanger}
                 onClick={handleCancelRFQ}
                 disabled={isCancelling}
-                >
-                {isCancelling ? 'Cancelling...' : 'Cancel request'}
-                </button>
+              >
+                {isCancelling ? 'Cancelling...' : 'Cancel RFQ'}
+              </button>
             </div>
-            </div>
+          </div>
         </div>
-        )}
-
+      )}
     </div>
   );
 }

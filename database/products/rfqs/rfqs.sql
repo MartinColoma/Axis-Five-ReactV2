@@ -53,6 +53,9 @@ create table
         updated_at timestamptz not null default now ()
     );
 
+alter table public.rfq_items
+add column if not exists subscription_enabled boolean not null default false;
+
 create index if not exists idx_rfq_items_rfq_id on public.rfq_items (rfq_id);
 
 create index if not exists idx_rfq_items_product_id on public.rfq_items (product_id);
