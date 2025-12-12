@@ -1,11 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import styles from './PC_Home.module.css';
 import Navbar from '../PC_Navigation/PC_Navbar';
 import Footer from '../../Landing/Navigation/Footer';
 import usePageMeta from '../../../hooks/usePageMeta';
-
-type FilterType = 'all' | 'iot' | 'security' | 'software';
 
 interface LocalProduct {
   id: number;
@@ -59,10 +57,7 @@ const localProducts: LocalProduct[] = [
         'Air quality sensors',
         'Real-time data dashboard',
       ],
-      images: [
-        '/images/products/env_monitor/env-monitor.jpg',
-        '/images/products/env_monitor/detail1.jpg',
-      ],
+      images: ['/images/products/env_monitor/env-monitor.jpg', '/images/products/env_monitor/detail1.jpg'],
     },
   },
   {
@@ -74,16 +69,8 @@ const localProducts: LocalProduct[] = [
     modalContent: {
       fullDescription:
         'Advanced IoT security system with AI-powered motion detection and cloud-based monitoring capabilities.',
-      features: [
-        'AI motion detection',
-        'Cloud access',
-        'Real-time alerts',
-        'Remote monitoring',
-      ],
-      images: [
-        '/images/products/security_sys/security-system.jpg',
-        '/images/products/security_sys/detail1.jpg',
-      ],
+      features: ['AI motion detection', 'Cloud access', 'Real-time alerts', 'Remote monitoring'],
+      images: ['/images/products/security_sys/security-system.jpg', '/images/products/security_sys/detail1.jpg'],
     },
   },
   {
@@ -96,10 +83,7 @@ const localProducts: LocalProduct[] = [
       fullDescription:
         'Smart library management system combining IoT technology with AI-powered assistance for enhanced user experience.',
       features: ['AI chatbot assistance', 'IoT integration', 'Self-service kiosk', 'Digital catalog'],
-      images: [
-        '/images/products/librax/LibraX.jpg',
-        '/images/products/librax/detail1.jpg',
-      ],
+      images: ['/images/products/librax/LibraX.jpg', '/images/products/librax/detail1.jpg'],
     },
   },
 ];
@@ -113,16 +97,15 @@ interface ApiProduct {
   slug: string;
   short_description: string | null;
   description: string | null;
-  category: string | null; // "iot" | "security" | "software"
+  category: string | null;
   main_image_url: string | null;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string; 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 export default function Products() {
   const [apiProducts, setApiProducts] = useState<ApiProduct[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [heroCarouselIndex, setHeroCarouselIndex] = useState(0);
 
   usePageMeta('AxisFive Store - Products', '/images/Logos/A5_Logo1.png');
@@ -166,20 +149,6 @@ export default function Products() {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredProducts = useMemo(
-    () =>
-      apiProducts.filter((product) => {
-        if (activeFilter === 'all') return true;
-        const cat = (product.category || '').toLowerCase();
-        return cat === activeFilter;
-      }),
-    [apiProducts, activeFilter]
-  );
-
-  const handleFilterChange = (filter: FilterType) => {
-    setActiveFilter(filter);
-  };
-
   const nextHeroSlide = () => {
     if (!featuredProducts.length) return;
     setHeroCarouselIndex((prev) => (prev + 1) % featuredProducts.length);
@@ -187,9 +156,7 @@ export default function Products() {
 
   const prevHeroSlide = () => {
     if (!featuredProducts.length) return;
-    setHeroCarouselIndex((prev) =>
-      prev === 0 ? featuredProducts.length - 1 : prev - 1
-    );
+    setHeroCarouselIndex((prev) => (prev === 0 ? featuredProducts.length - 1 : prev - 1));
   };
 
   // Hash navigation (unchanged)
@@ -230,15 +197,13 @@ export default function Products() {
     }
   };
 
-  const getProductImage = (p: ApiProduct) =>
-    p.main_image_url || '/images/products/placeholder.png';
+  const getProductImage = (p: ApiProduct) => p.main_image_url || '/images/products/placeholder.png';
 
   const getShortText = (p: ApiProduct) =>
     p.short_description || (p.description ? p.description.slice(0, 120) + '…' : 'View details');
 
   return (
     <div className={styles.page}>
-      {/* Navbar */}
       <Navbar />
 
       {/* HERO CAROUSEL - unchanged, still uses local files */}
@@ -246,9 +211,7 @@ export default function Products() {
         {featuredProducts.map((product, index) => (
           <div
             key={product.id}
-            className={`${styles.carouselItem} ${
-              index === heroCarouselIndex ? styles.active : ''
-            }`}
+            className={`${styles.carouselItem} ${index === heroCarouselIndex ? styles.active : ''}`}
           >
             <img src={product.image} alt={product.title} />
             <div className={styles.carouselCaption}>
@@ -257,6 +220,7 @@ export default function Products() {
             </div>
           </div>
         ))}
+
         <button className={styles.carouselControlPrev} onClick={prevHeroSlide}>
           <span className={styles.carouselControlIcon}>&#8249;</span>
         </button>
@@ -264,14 +228,11 @@ export default function Products() {
           <span className={styles.carouselControlIcon}>&#8250;</span>
         </button>
 
-        {/* Carousel Indicators */}
         <div className={styles.carouselIndicators}>
           {featuredProducts.map((_, index) => (
             <button
               key={index}
-              className={`${styles.indicator} ${
-                index === heroCarouselIndex ? styles.activeIndicator : ''
-              }`}
+              className={`${styles.indicator} ${index === heroCarouselIndex ? styles.activeIndicator : ''}`}
               onClick={() => setHeroCarouselIndex(index)}
               aria-label={`Slide ${index + 1}`}
             />
@@ -284,59 +245,15 @@ export default function Products() {
         <div className={styles.container}>
           <h2 className={styles.sectionTitle}>Product Catalog</h2>
 
-          {/* Filters */}
-          <div className={styles.filters}>
-            <button
-              className={`${styles.filterBtn} ${
-                activeFilter === 'all' ? styles.active : ''
-              }`}
-              onClick={() => handleFilterChange('all')}
-            >
-              All
-            </button>
-            <button
-              className={`${styles.filterBtn} ${
-                activeFilter === 'iot' ? styles.active : ''
-              }`}
-              onClick={() => handleFilterChange('iot')}
-            >
-              IoT
-            </button>
-            <button
-              className={`${styles.filterBtn} ${
-                activeFilter === 'security' ? styles.active : ''
-              }`}
-              onClick={() => handleFilterChange('security')}
-            >
-              Security
-            </button>
-            <button
-              className={`${styles.filterBtn} ${
-                activeFilter === 'software' ? styles.active : ''
-              }`}
-              onClick={() => handleFilterChange('software')}
-            >
-              Software
-            </button>
-          </div>
-
-          {/* Products Grid (cards are links to PDP) */}
+          {/* Products Grid (no sorter/filter) */}
           {loading && apiProducts.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-              Loading products...
-            </p>
-          ) : filteredProducts.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-              No products found for this category.
-            </p>
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading products...</p>
+          ) : apiProducts.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No products found.</p>
           ) : (
             <div className={styles.productsGrid}>
-              {filteredProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  to={`/products/${product.slug}`}
-                  className={styles.productCard}
-                >
+              {apiProducts.map((product) => (
+                <Link key={product.id} to={`/products/${product.slug}`} className={styles.productCard}>
                   <img src={getProductImage(product)} alt={product.name} />
                   <div className={styles.cardBody}>
                     <h5>{product.name}</h5>
@@ -349,7 +266,6 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Footer */}
       <Footer onScrollToSection={scrollToSection} />
     </div>
   );

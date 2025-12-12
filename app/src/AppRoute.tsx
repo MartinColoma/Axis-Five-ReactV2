@@ -17,7 +17,8 @@ import PC_Cart from './pages/ProdCatalog/PC_Product/Cart/Cart';
 import PC_RFQ from './pages/ProdCatalog/PC_Product/RFQ/RFQ';
 import PC_RFQDetails from './pages/ProdCatalog/PC_Product/RFQ/Details/RFQ_Details'
 import PC_RFQList from './pages/ProdCatalog/PC_Product/RFQ/List/RFQ_List'
-
+//User Pages
+import UserProfile from './pages/Users/UserProfile/User_Profile'
 // Admin Pages
 import AdminHome from './pages/Admin/AdminHome/AdminHome';
 import AdminUsers from './pages/Admin/AdminUsers/AdminUser';
@@ -75,6 +76,23 @@ const AppRoutes: FC = () => {
           }
         />
         {/* Protected Admin Routes */}
+        <Route
+          path="/account/profile"
+          element={
+            <ProtectedRoute requiredRole="customer">
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        {/* Protected Admin Routes */}
+        <Route
+          path="/admin/profile"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin/dashboard"
           element={
