@@ -15,7 +15,10 @@ type RFQStatus =
   | 'REJECTED_BY_ADMIN'
   | 'REJECTED_BY_CUSTOMER'
   | 'EXPIRED'
-  | 'CONVERTED_TO_ORDER';
+  | 'CONVERTED_TO_ORDER'
+  | 'READY_FOR_PICKUP_FROM_ORDER'
+  | 'ORDER_COMPLETED';
+
 
 interface RFQItem {
   id: number;
@@ -123,30 +126,34 @@ export default function AdminRFQ_Details() {
     fetchRFQ();
   }, [id, authLoading, isLoggedIn, navigate]);
 
-  const friendlyStatus = useMemo(() => {
-    if (!rfq) return 'RFQ Submitted – Pending review';
+const friendlyStatus = useMemo(() => {
+  if (!rfq) return 'RFQ Submitted – Pending review';
 
-    switch (rfq.status) {
-      case 'PENDING_REVIEW':
-        return 'RFQ Submitted – Pending review';
-      case 'UNDER_REVIEW':
-        return 'Under review by AxisFive';
-      case 'QUOTE_SENT':
-        return 'Quote sent – Awaiting customer response';
-      case 'PARTIALLY_QUOTED':
-        return 'Partially quoted – Some items pending';
-      case 'REJECTED_BY_ADMIN':
-        return 'Rejected by AxisFive team';
-      case 'REJECTED_BY_CUSTOMER':
-        return 'Rejected – Customer declined this quote';
-      case 'EXPIRED':
-        return 'Quote expired';
-      case 'CONVERTED_TO_ORDER':
-        return 'Order created from this RFQ';
-      default:
-        return 'RFQ status unknown';
-    }
-  }, [rfq]);
+  switch (rfq.status) {
+    case 'PENDING_REVIEW':
+      return 'RFQ Submitted – Pending review';
+    case 'UNDER_REVIEW':
+      return 'Under review by AxisFive';
+    case 'QUOTE_SENT':
+      return 'Quote sent – Awaiting your response';
+    case 'PARTIALLY_QUOTED':
+      return 'Partially quoted – Some items pending';
+    case 'REJECTED_BY_ADMIN':
+      return 'Rejected by AxisFive team';
+    case 'REJECTED_BY_CUSTOMER':
+      return 'Rejected – You declined this quote';
+    case 'EXPIRED':
+      return 'Quote expired';
+    case 'CONVERTED_TO_ORDER':
+      return 'Order created from this RFQ';
+    case 'READY_FOR_PICKUP_FROM_ORDER':
+      return 'Order ready for pickup';
+    case 'ORDER_COMPLETED':
+      return 'Order completed';
+    default:
+      return 'RFQ status unknown';
+  }
+}, [rfq]);
 
   const timelineSteps = useMemo(
     () => [
@@ -161,26 +168,30 @@ export default function AdminRFQ_Details() {
     []
   );
 
-  const activeTimelineIndex = useMemo(() => {
-    if (!rfq) return 0;
-    switch (rfq.status) {
-      case 'PENDING_REVIEW':
-        return 0;
-      case 'UNDER_REVIEW':
-        return 1;
-      case 'QUOTE_SENT':
-      case 'PARTIALLY_QUOTED':
-        return 2;
-      case 'CONVERTED_TO_ORDER':
-        return 4;
-      case 'EXPIRED':
-      case 'REJECTED_BY_ADMIN':
-      case 'REJECTED_BY_CUSTOMER':
-        return 2;
-      default:
-        return 0;
-    }
-  }, [rfq]);
+const activeTimelineIndex = useMemo(() => {
+  if (!rfq) return 0;
+  switch (rfq.status) {
+    case 'PENDING_REVIEW':
+      return 0;
+    case 'UNDER_REVIEW':
+      return 1;
+    case 'QUOTE_SENT':
+    case 'PARTIALLY_QUOTED':
+      return 2;
+    case 'CONVERTED_TO_ORDER':
+      return 4; // Order Created
+    case 'READY_FOR_PICKUP_FROM_ORDER':
+      return 5; // Ready for Pickup
+    case 'ORDER_COMPLETED':
+      return 6; // Completed
+    case 'EXPIRED':
+    case 'REJECTED_BY_ADMIN':
+    case 'REJECTED_BY_CUSTOMER':
+      return 2;
+    default:
+      return 0;
+  }
+}, [rfq]);
 
   const totalQuantity = useMemo(
     () => items.reduce((sum, it) => sum + (it.quantity || 0), 0),

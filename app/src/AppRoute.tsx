@@ -24,6 +24,8 @@ import AdminUsers from './pages/Admin/AdminUsers/AdminUser';
 import AdminProd from './pages/Admin/AdminProducts/AdminProd';
 import AdminRFQList from './pages/Admin/AdminRFQ/List/AdminRFQ_List';
 import AdminRFQDetails from './pages/Admin/AdminRFQ/Details/AdminRFQ_Details';
+import AdminOrderList from './pages/Admin/AdminOrders/List/AdminOrderList';
+import AdminOrderDetails from './pages/Admin/AdminOrders/Details/AdminOrderDetails';
 const AppRoutes: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -113,8 +115,24 @@ const AppRoutes: FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/orders/:id"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminOrderDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminOrderList />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-
+      
       {/* Modal routes (login/register) */}
       {background && (
         <Routes>
