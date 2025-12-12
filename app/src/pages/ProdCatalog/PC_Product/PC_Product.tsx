@@ -7,7 +7,7 @@ import Footer from '../../Landing/Navigation/Footer';
 import usePageMeta from '../../../hooks/usePageMeta';
 import { useAuth } from '../../../contexts/AuthContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 interface Product {
   id: number;

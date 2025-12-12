@@ -26,7 +26,7 @@ interface ProductFormData {
   main_image_url: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string; //VITE_API_LOCAL_SERVER //VITE_API_BASE_URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string; //VITE_API_LOCAL_SERVER //VITE_API_BASE_URL
 
 const slugify = (value: string) =>
   value

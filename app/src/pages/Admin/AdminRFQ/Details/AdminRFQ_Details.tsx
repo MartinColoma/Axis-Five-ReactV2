@@ -5,7 +5,7 @@ import Navbar from '../../../ProdCatalog/PC_Navigation/PC_Navbar';
 import { useAuth } from '../../../../contexts/AuthContext';
 import styles from './AdminRFQ_Details.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 type RFQStatus =
   | 'PENDING_REVIEW'
