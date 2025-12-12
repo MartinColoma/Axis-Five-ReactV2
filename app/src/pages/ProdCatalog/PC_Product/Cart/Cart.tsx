@@ -5,7 +5,7 @@ import Navbar from '../../PC_Navigation/PC_Navbar';
 import { useAuth } from '../../../../contexts/AuthContext';
 import styles from './Cart.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 interface CartItem {
   id: number;

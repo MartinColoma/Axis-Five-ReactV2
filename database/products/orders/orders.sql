@@ -49,3 +49,6 @@ create table
 create index if not exists idx_order_items_order_id on public.order_items (order_id);
 
 create index if not exists idx_order_items_product_id on public.order_items (product_id);
+
+alter table public.orders
+add column if not exists paid_at timestamptz;

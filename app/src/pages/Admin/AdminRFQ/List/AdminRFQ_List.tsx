@@ -6,7 +6,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import styles from './AdminRFQ_List.module.css';
 import { Eye, CircleCheck } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 type RFQStatus =
   | 'PENDING_REVIEW'

@@ -5,7 +5,7 @@ import Navbar from '../../../ProdCatalog/PC_Navigation/PC_Navbar';
 import { useAuth } from '../../../../contexts/AuthContext';
 import styles from './AdminOrderDetails.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 type OrderStatus = 'AWAITING_PICKUP' | 'READY_FOR_PICKUP' | 'COMPLETED' | 'CANCELLED';
 
@@ -25,7 +25,6 @@ interface OrderItem {
     slug: string;
     main_image_url: string | null;
   };
-  // optional per-line status if you add it later
   line_status?: 'PENDING' | 'READY';
 }
 
@@ -51,6 +50,15 @@ interface Order {
   };
 }
 
+function toNumberSafe(v: unknown): number {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function round2(n: number): number {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
 export default function AdminOrder_Details() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -61,6 +69,11 @@ export default function AdminOrder_Details() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // POS modal state
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [cashReceived, setCashReceived] = useState<string>(''); // keep as string for easy typing
+  const [cashTouched, setCashTouched] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -158,28 +171,48 @@ export default function AdminOrder_Details() {
       maximumFractionDigits: 2,
     })}`;
 
-  const canMarkReady =
-    !!order && (order.status === 'AWAITING_PICKUP' || order.status === 'READY_FOR_PICKUP');
+  // Action guards
+  const canMarkReady = !!order && order.status === 'AWAITING_PICKUP';
+
+  // POS rule: can only pay when order is READY_FOR_PICKUP and not already paid/completed/cancelled
+const canPayNow =
+  !!order &&
+  order.status === 'READY_FOR_PICKUP' &&
+  order.payment_status !== 'PAID';
+
+
+  const orderTotal = useMemo(() => round2(toNumberSafe(order?.total_price)), [order]);
+  const cashNum = useMemo(() => toNumberSafe(cashReceived), [cashReceived]);
+  const change = useMemo(() => round2(Math.max(0, cashNum - orderTotal)), [cashNum, orderTotal]);
+  const canConfirmCash = useMemo(
+    () => canPayNow && Number.isFinite(cashNum) && cashNum >= orderTotal && orderTotal > 0,
+    [canPayNow, cashNum, orderTotal]
+  );
+
+  const cashError = useMemo(() => {
+    if (!showPayModal) return null;
+    if (!cashTouched) return null;
+    if (!cashReceived.trim()) return 'Enter cash received.';
+    if (!Number.isFinite(cashNum) || cashNum <= 0) return 'Invalid cash amount.';
+    if (cashNum < orderTotal) return 'Insufficient cash received.';
+    return null;
+  }, [showPayModal, cashTouched, cashReceived, cashNum, orderTotal]);
 
   const handleMarkReadyForPickup = async () => {
     if (!order || !canMarkReady) return;
     setActionLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/order/${order.id}/ready-for-pickup`,
-        {
-          method: 'POST',
-          credentials: 'include',
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/admin/order/${order.id}/ready-for-pickup`, {
+        method: 'POST',
+        credentials: 'include',
+      });
       const data = await res.json();
 
       if (!res.ok || !data.success || !data.order) {
         setErrorMsg(data.message || 'Failed to update order.');
         return;
       }
-
       setOrder(data.order);
     } catch (err) {
       console.error('Error updating order status:', err);
@@ -187,6 +220,71 @@ export default function AdminOrder_Details() {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const openPayModal = () => {
+    if (!canPayNow) return;
+    setCashReceived('');
+    setCashTouched(false);
+    setShowPayModal(true);
+  };
+
+  const closePayModal = () => {
+    setShowPayModal(false);
+    setCashReceived('');
+    setCashTouched(false);
+  };
+
+  const handlePayAndComplete = async () => {
+    if (!order || !canPayNow) return;
+
+    setCashTouched(true);
+
+    if (!canConfirmCash) return;
+
+    setActionLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/order/${order.id}/pay-and-complete`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount_received: cashNum }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !data.order) {
+        setErrorMsg(data.message || 'Failed to accept payment.');
+        return;
+      }
+
+      setOrder(data.order);
+      closePayModal();
+    } catch (err) {
+      console.error('Error pay-and-complete:', err);
+      setErrorMsg('Failed to accept payment. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Optional: quick-add buttons like a POS
+  const quickAdd = (add: number) => {
+    setCashTouched(true);
+    const next = round2(cashNum + add);
+    setCashReceived(String(next));
+  };
+
+  const backspaceCash = () => {
+    setCashTouched(true);
+    setCashReceived((prev) => prev.slice(0, -1));
+  };
+
+  const clearCash = () => {
+    setCashTouched(true);
+    setCashReceived('');
   };
 
   if (authLoading || loading) {
@@ -272,21 +370,6 @@ export default function AdminOrder_Details() {
               >
                 Back to orders
               </button>
-
-              {canMarkReady && (
-                <button
-                  type="button"
-                  className={styles.btnPrimary}
-                  onClick={handleMarkReadyForPickup}
-                  disabled={actionLoading}
-                >
-                  {order.status === 'AWAITING_PICKUP'
-                    ? actionLoading
-                      ? 'Marking...'
-                      : 'Mark ready for pickup'
-                    : 'Already ready for pickup'}
-                </button>
-              )}
             </div>
           </div>
 
@@ -305,9 +388,7 @@ export default function AdminOrder_Details() {
                     />
                     <span
                       className={`${styles.timelineLabel} ${
-                        isActive
-                          ? styles.timelineLabelActive
-                          : styles.timelineLabelInactive
+                        isActive ? styles.timelineLabelActive : styles.timelineLabelInactive
                       }`}
                     >
                       {step.label}
@@ -318,15 +399,13 @@ export default function AdminOrder_Details() {
             </ol>
           </section>
 
-          {/* Layout: items + details */}
+          {/* Layout */}
           <section className={styles.layout}>
             {/* Items */}
             <div className={styles.card}>
               <h2 className={styles.sectionTitle}>Items</h2>
               {items.length === 0 ? (
-                <p className={styles.textMuted}>
-                  No line items were found for this order.
-                </p>
+                <p className={styles.textMuted}>No line items were found for this order.</p>
               ) : (
                 <>
                   <ul className={styles.itemList}>
@@ -336,15 +415,10 @@ export default function AdminOrder_Details() {
                           <button
                             type="button"
                             className={styles.thumbButton}
-                            onClick={() =>
-                              navigate(`/products/${it.product!.slug}`)
-                            }
+                            onClick={() => navigate(`/products/${it.product!.slug}`)}
                           >
                             <div className={styles.thumb}>
-                              <img
-                                src={it.product.main_image_url}
-                                alt={it.product.name}
-                              />
+                              <img src={it.product.main_image_url} alt={it.product.name} />
                             </div>
                           </button>
                         )}
@@ -353,24 +427,18 @@ export default function AdminOrder_Details() {
                           <button
                             type="button"
                             className={styles.itemName}
-                            onClick={() =>
-                              it.product &&
-                              navigate(`/products/${it.product.slug}`)
-                            }
+                            onClick={() => it.product && navigate(`/products/${it.product.slug}`)}
                           >
                             {it.product?.name || `Product #${it.product_id}`}
                           </button>
 
                           <div className={styles.itemMetaRow}>
-                            <span className={styles.itemQty}>
-                              Qty {it.quantity}
-                            </span>
+                            <span className={styles.itemQty}>Qty {it.quantity}</span>
                             <span className={styles.itemBasePrice}>
                               Unit: {formatMoney(Number(it.unit_price))}
                             </span>
                             <span className={styles.itemBaseLineTotal}>
-                              Line total:{' '}
-                              {formatMoney(Number(it.line_total))}
+                              Line total: {formatMoney(Number(it.line_total))}
                             </span>
                           </div>
                         </div>
@@ -380,18 +448,17 @@ export default function AdminOrder_Details() {
 
                   <div className={styles.itemsFooter}>
                     <span className={styles.summaryText}>
-                      Total quantity: {totalQuantity} unit
-                      {totalQuantity === 1 ? '' : 's'}
+                      Total quantity: {totalQuantity} unit{totalQuantity === 1 ? '' : 's'}
                     </span>
                     <span className={styles.summaryText}>
-                      Order total: {formatMoney(Number(order.total_price))}
+                      Order total: {formatMoney(orderTotal)}
                     </span>
                   </div>
                 </>
               )}
             </div>
 
-            {/* Order / customer details */}
+            {/* Details + Actions */}
             <div className={styles.card}>
               <h2 className={styles.sectionTitle}>Order details</h2>
               <dl className={styles.detailsGrid}>
@@ -407,21 +474,15 @@ export default function AdminOrder_Details() {
                   <dt>Contact</dt>
                   <dd>
                     {order.rfq?.contact_name || '—'}
-                    {order.rfq?.contact_email
-                      ? ` · ${order.rfq.contact_email}`
-                      : ''}
-                    {order.rfq?.contact_phone
-                      ? ` · ${order.rfq.contact_phone}`
-                      : ''}
+                    {order.rfq?.contact_email ? ` · ${order.rfq.contact_email}` : ''}
+                    {order.rfq?.contact_phone ? ` · ${order.rfq.contact_phone}` : ''}
                   </dd>
                 </div>
                 <div className={styles.detailRow}>
                   <dt>Pickup</dt>
                   <dd>
                     {order.pickup_location}
-                    {order.pickup_instructions
-                      ? ` · ${order.pickup_instructions}`
-                      : ''}
+                    {order.pickup_instructions ? ` · ${order.pickup_instructions}` : ''}
                   </dd>
                 </div>
                 <div className={styles.detailRow}>
@@ -431,10 +492,113 @@ export default function AdminOrder_Details() {
                   </dd>
                 </div>
               </dl>
+
+              <div className={styles.actionsRow}>
+                {canMarkReady && (
+                  <button
+                    type="button"
+                    className={styles.btnSecondary}
+                    onClick={handleMarkReadyForPickup}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? 'Marking...' : 'Mark ready for pickup'}
+                  </button>
+                )}
+
+                {canPayNow && (
+                  <button
+                    type="button"
+                    className={styles.btnPrimary}
+                    onClick={openPayModal}
+                    disabled={actionLoading}
+                  >
+                    Pay (cash)
+                  </button>
+                )}
+              </div>
             </div>
           </section>
         </div>
       </main>
+
+      {/* POS PAYMENT MODAL */}
+      {showPayModal && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+          <div className={styles.modal}>
+            <h2 id="payModalTitle" className={styles.modalTitle}>
+              Cash payment
+            </h2>
+
+            <div className={styles.posTotals}>
+              <div className={styles.posRow}>
+                <span>Amount due</span>
+                <strong>{formatMoney(orderTotal)}</strong>
+              </div>
+
+              <div className={styles.posRow}>
+                <span>Cash received</span>
+                <input
+                  className={styles.posInput}
+                  value={cashReceived}
+                  onChange={(e) => {
+                    setCashTouched(true);
+                    setCashReceived(e.target.value);
+                  }}
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  disabled={actionLoading}
+                  autoFocus
+                />
+              </div>
+
+              <div className={styles.posRow}>
+                <span>Change</span>
+                <strong>{formatMoney(change)}</strong>
+              </div>
+
+              {cashError && <div className={styles.alertError}>{cashError}</div>}
+            </div>
+
+            {/* Quick cash buttons (optional but helps POS feel) */}
+            <div className={styles.posQuickGrid}>
+              <button type="button" className={styles.btnSecondary} onClick={() => quickAdd(50)} disabled={actionLoading}>
+                +50
+              </button>
+              <button type="button" className={styles.btnSecondary} onClick={() => quickAdd(100)} disabled={actionLoading}>
+                +100
+              </button>
+              <button type="button" className={styles.btnSecondary} onClick={() => quickAdd(500)} disabled={actionLoading}>
+                +500
+              </button>
+              <button type="button" className={styles.btnSecondary} onClick={() => quickAdd(1000)} disabled={actionLoading}>
+                +1000
+              </button>
+              <button type="button" className={styles.btnSecondary} onClick={backspaceCash} disabled={actionLoading}>
+                Backspace
+              </button>
+              <button type="button" className={styles.btnSecondary} onClick={clearCash} disabled={actionLoading}>
+                Clear
+              </button>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.btnSecondary} onClick={closePayModal} disabled={actionLoading}>
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={handlePayAndComplete}
+                disabled={actionLoading || !canConfirmCash}
+                title={!canConfirmCash ? 'Enter cash received ≥ amount due.' : undefined}
+              >
+                {actionLoading ? 'Processing...' : 'Confirm payment & complete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

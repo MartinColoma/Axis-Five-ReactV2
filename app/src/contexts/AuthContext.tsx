@@ -23,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL; // VITE_API_LOCAL_SERVER // VITE_API_BASE_URL
+const API_BASE = import.meta.env.VITE_API_LOCAL_SERVER; // VITE_API_LOCAL_SERVER // VITE_API_BASE_URL
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -31,53 +31,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const checkAuth = useCallback(async (showLoading = true) => {
-    if (showLoading) {
-      setIsLoading(true);
+const checkAuth = useCallback(async (showLoading = true) => {
+  if (showLoading) setIsLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE}/api/auth/verify-token`, {
+      credentials: 'include',
+    });
+
+    // If backend is temporarily down, keep current auth state
+    if (response.status === 503) {
+      console.warn('⚠️ Auth backend unavailable; keeping existing session UI.');
+      return isLoggedIn; // keep what you already have
     }
 
-    try {
-      console.log('🔍 Checking auth... (cookie-based)');
+    const data = await response.json();
 
-      const response = await fetch(`${API_BASE}/api/auth/verify-token`, {
-        credentials: 'include', // ✔ required for cookies
-      });
-
-      const data = await response.json();
-
-      console.log('📥 Auth check result:', {
-        success: data.success,
-        hasUser: !!data.user,
-        code: data.code,
-      });
-
-      if (data.success && data.user) {
-        console.log('✅ Session valid:', data.user.username);
-        setIsLoggedIn(true);
-        setUserData(data.user);
-        setIsInitialized(true);
-        return true;
-      } else {
-        console.log('❌ No valid session');
-        setIsLoggedIn(false);
-        setUserData(null);
-        localStorage.removeItem('auth_token');
-        setIsInitialized(true);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Auth check failed:', error);
-      setIsLoggedIn(false);
-      setUserData(null);
-      localStorage.removeItem('auth_token');
+    if (data.success && data.user) {
+      setIsLoggedIn(true);
+      setUserData(data.user);
       setIsInitialized(true);
-      return false;
-    } finally {
-      if (showLoading) {
-        setIsLoading(false);
-      }
+      return true;
     }
-  }, []);
+
+    // Only here do we "really" log out in UI
+    setIsLoggedIn(false);
+    setUserData(null);
+    localStorage.removeItem('auth_token');
+    setIsInitialized(true);
+    return false;
+  } catch (error) {
+    // Network error: also keep current auth state (don’t auto-logout)
+    console.warn('⚠️ Auth check network error; keeping existing session UI.', error);
+    return isLoggedIn;
+  } finally {
+    if (showLoading) setIsLoading(false);
+  }
+}, [API_BASE, isLoggedIn]);
+
 
   useEffect(() => {
     console.log('🚀 App initialized - checking authentication...');

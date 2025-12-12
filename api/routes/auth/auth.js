@@ -253,80 +253,78 @@ router.post("/login", async (req, res) => {
     }
   });
 
-  // ==============================
-  // GET /verify-token (cookie-first)
-  // ==============================
-  router.get("/verify-token", async (req, res) => {
-    console.log("\n🔍 === VERIFY TOKEN DEBUG ===");
-    console.log("Cookies received:", req.cookies);
-    console.log("Cookie keys:", Object.keys(req.cookies || {}));
-    console.log("Auth header:", req.headers.authorization);
-    console.log("Has auth_token cookie:", !!req.cookies?.auth_token);
-    console.log("================================\n");
+// ==============================
+// GET /verify-token (cookie-first)
+// ==============================
+router.get("/verify-token", async (req, res) => {
+  const token = req.cookies?.auth_token || req.headers.authorization?.split(" ")[1];
 
-    const token =
-      req.cookies?.auth_token || req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      code: "NO_TOKEN",
+      message: "Missing token.",
+    });
+  }
 
-    if (!token) {
-      console.log("❌ No token found in cookies or headers");
+  let decoded;
+  try {
+    decoded = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    // Real auth failure: clear cookie
+    res.clearCookie("auth_token", COOKIE_OPTIONS);
+    return res.status(401).json({
+      success: false,
+      code: "JWT_INVALID",
+      message: "Invalid or expired token.",
+    });
+  }
+
+  try {
+    const { data: session, error: sessionError } = await supabase
+      .from("user_sessions")
+      .select("*")
+      .eq("user_id", decoded.id)
+      .eq("session_token", decoded.session_token)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (sessionError) throw sessionError;
+
+    if (!session) {
+      // Real auth failure: session is gone/expired
+      res.clearCookie("auth_token", COOKIE_OPTIONS);
       return res.status(401).json({
         success: false,
-        message: "Missing token.",
-        debug: {
-          hasCookies: !!req.cookies,
-          cookieKeys: Object.keys(req.cookies || {}),
-          hasAuthHeader: !!req.headers.authorization,
-          origin: req.headers.origin,
-          referer: req.headers.referer,
-        },
+        code: "SESSION_INVALID",
+        message: "Session expired or invalid.",
       });
     }
 
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+    // Best-effort: update activity (don't fail auth if this update fails)
+    supabase
+      .from("user_sessions")
+      .update({ last_activity: new Date().toISOString() })
+      .eq("user_id", decoded.id)
+      .eq("session_token", decoded.session_token)
+      .then(() => {})
+      .catch(() => {});
 
-      const { data: session, error: sessionError } = await supabase
-        .from("user_sessions")
-        .select("*")
-        .eq("user_id", decoded.id)
-        .eq("session_token", decoded.session_token)
-        .eq("is_active", true)
-        .maybeSingle();
+    // Refresh cookie expiration for this device
+    res.cookie("auth_token", token, COOKIE_OPTIONS);
 
-      if (sessionError) {
-        console.error("Session fetch error:", sessionError);
-      }
+    return res.status(200).json({ success: true, user: decoded });
+  } catch (err) {
+    // IMPORTANT: Supabase/network issues are NOT "logged out"
+    // Don’t clear cookie here.
+    return res.status(503).json({
+      success: false,
+      code: "AUTH_BACKEND_UNAVAILABLE",
+      message: "Auth backend temporarily unavailable.",
+    });
+  }
+});
 
-      if (!session) {
-        res.clearCookie("auth_token", { path: "/" });
-        console.log("❌ Session invalid or expired for user:", decoded.username);
-        return res.status(401).json({
-          success: false,
-          message: "Session expired or invalid.",
-          code: "SESSION_INVALID",
-        });
-      }
-
-      await supabase
-        .from("user_sessions")
-        .update({ last_activity: new Date().toISOString() })
-        .eq("user_id", decoded.id)
-        .eq("session_token", decoded.session_token);
-
-      // refresh cookie expiration for this device
-      res.cookie("auth_token", token, COOKIE_OPTIONS);
-
-      console.log("✅ Token verified for user:", decoded.username);
-
-      return res.status(200).json({ success: true, user: decoded });
-    } catch (err) {
-      console.error("❌ Token verification failed:", err.message);
-      res.clearCookie("auth_token", { path: "/" });
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid or expired token." });
-    }
-  });
 
   app.use("/api/auth", router);
 };

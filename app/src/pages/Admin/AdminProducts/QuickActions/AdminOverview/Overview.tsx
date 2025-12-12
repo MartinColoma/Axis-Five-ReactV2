@@ -21,7 +21,7 @@ interface Product {
 type SortColumn = 'name' | 'sku' | 'stock_quantity' | 'stock_status' | 'created_at';
 type SortDirection = 'asc' | 'desc';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 const AdminOverview: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);

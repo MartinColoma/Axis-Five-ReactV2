@@ -1,4 +1,4 @@
-/* AdminRFQ_Details.module.css */
+/* AdminOrderDetails.module.css */
 
 *,
 *::before,
@@ -26,7 +26,6 @@
 }
 
 /* Header / breadcrumb */
-
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -81,7 +80,6 @@
 }
 
 /* Generic cards */
-
 .card {
   background: #020617;
   border-radius: 10px;
@@ -96,7 +94,6 @@
 }
 
 /* Center / alerts */
-
 .centerBox {
   margin-top: 3rem;
   padding: 2rem 1.5rem;
@@ -139,7 +136,6 @@
 }
 
 /* Spinner */
-
 .spinner {
   width: 32px;
   height: 32px;
@@ -157,7 +153,6 @@
 }
 
 /* Buttons */
-
 .btnPrimary {
   padding: 0.45rem 1.2rem;
   border-radius: 999px;
@@ -194,22 +189,7 @@
   background: rgba(15, 23, 42, 0.9);
 }
 
-.btnDanger {
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(248, 113, 113, 0.8);
-  background: rgba(127, 29, 29, 0.9);
-  color: #fee2e2;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.btnDanger:hover {
-  background: rgba(185, 28, 28, 0.95);
-}
-
 /* Timeline */
-
 .timeline {
   list-style: none;
   margin: 0;
@@ -253,8 +233,7 @@
   color: #6b7280;
 }
 
-/* Layout (two-column section) */
-
+/* Layout */
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -268,8 +247,7 @@
   }
 }
 
-/* Selected products list */
-
+/* Items list */
 .itemList {
   list-style: none;
   margin: 0;
@@ -340,20 +318,6 @@
   color: #e5e7eb;
 }
 
-.itemLineTotal {
-  margin-left: auto;
-  font-weight: 600;
-  color: #f9fafb;
-}
-
-.itemMetaLabel {
-  color: #9ca3af;
-}
-
-.itemMetaValue {
-  color: #e5e7eb;
-}
-
 .itemBasePrice {
   font-size: 0.8rem;
   color: #9ca3af;
@@ -380,8 +344,7 @@
   color: #e5e7eb;
 }
 
-/* Project details */
-
+/* Details */
 .detailsGrid {
   margin: 0;
   padding: 0;
@@ -410,85 +373,15 @@
   color: #e5e7eb;
 }
 
-/* Seller quote panel */
-
-.quoteForm {
-  margin-top: 0.75rem;
-}
-
-.quoteHeaderRow {
-  display: grid;
-  grid-template-columns: 2.2fr 0.7fr 1.1fr 1.2fr 1.2fr 1.2fr 1.1fr; /* product, qty, base, unit, total, lead, sub */
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: #9ca3af;
-  margin-bottom: 0.4rem;
-}
-
-.quoteRow {
-  display: grid;
-  grid-template-columns: 2.2fr 0.7fr 1.1fr 1.2fr 1.2fr 1.2fr 1.1fr;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.35rem 0;
-  border-top: 1px solid rgba(148, 163, 184, 0.18);
-}
-
-.quoteProductCol {
-  font-size: 0.85rem;
-  color: #e5e7eb;
-}
-
-.quoteQtyCol {
-  font-size: 0.85rem;
-  color: #e5e7eb;
-}
-
-.quoteBasePriceCol {
-  font-size: 0.8rem;
-  color: #e5e7eb;
-}
-
-.quoteInputCol {
-  display: flex;
-}
-
-.quoteInput {
-  width: 100%;
-  padding: 0.25rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: #020617;
-  color: #e5e7eb;
-  font-size: 0.8rem;
-}
-
-.quoteInput:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.quoteSubscriptionCol {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8rem;
-  color: #e5e7eb;
-}
-
-.quoteSubscriptionCol input[type='checkbox'] {
-  accent-color: #3b82f6;
-}
-
-.quoteActionsRow {
+/* Actions row */
+.actionsRow {
   margin-top: 0.75rem;
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
 }
 
-/* Responsive */
-
+/* Responsive header only */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -498,39 +391,9 @@
   .headerActions {
     margin-top: 0.5rem;
   }
-
-  .quoteHeaderRow {
-    display: none; /* hide header row on small screens */
-  }
-
-  .quoteRow {
-    grid-template-columns: 1.7fr 0.9fr;
-    grid-template-rows: auto auto auto auto;
-  }
-
-  .quoteProductCol {
-    grid-column: 1 / -1;
-  }
-
-  .quoteQtyCol {
-    grid-column: 1 / 2;
-  }
-
-  .quoteBasePriceCol {
-    grid-column: 2 / 3;
-    text-align: right;
-  }
-
-  .quoteInputCol:nth-of-type(1),
-  .quoteInputCol:nth-of-type(2),
-  .quoteInputCol:nth-of-type(3),
-  .quoteSubscriptionCol {
-    grid-column: 1 / -1;
-  }
 }
 
 /* Modal */
-
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -555,14 +418,94 @@
   margin-bottom: 0.5rem;
 }
 
-.modalText {
-  font-size: 0.9rem;
-  color: #9ca3af;
-  margin-bottom: 1rem;
-}
-
 .modalActions {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
+}
+
+/* POS Payment Modal Add-ons */
+.posTotals {
+  margin-top: 0.75rem;
+  padding: 0.9rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.posRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+.posRow:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.posRow span {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.posRow strong {
+  font-size: 1.05rem;
+  color: #f9fafb;
+}
+
+.posInput {
+  width: 180px;
+  text-align: right;
+  padding: 0.55rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: #020617;
+  color: #f9fafb;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.posInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.posInput:disabled {
+  opacity: 0.6;
+}
+
+.posQuickGrid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.posQuickGrid button {
+  border-radius: 12px;
+  padding: 0.6rem 0.5rem;
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  .modal {
+    max-width: 92vw;
+    padding: 1.1rem 1.1rem;
+  }
+
+  .posInput {
+    width: 150px;
+  }
+
+  .posQuickGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

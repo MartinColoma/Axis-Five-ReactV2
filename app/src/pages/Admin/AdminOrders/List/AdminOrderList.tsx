@@ -5,7 +5,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import styles from './AdminOrderList.module.css';
 import { Eye } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE_URL = import.meta.env.VITE_API_LOCAL_SERVER as string;
 
 type OrderStatus = 'AWAITING_PICKUP' | 'READY_FOR_PICKUP' | 'COMPLETED' | 'CANCELLED';
 
