@@ -283,18 +283,18 @@ const EcommerceNavbar: FC<EcommerceNavbarProps> = ({ cartItemCount, onCartClick 
 
                         <button
                           className={styles.dropdownItem}
-                          onClick={() => handleAccountNavigation('/admin/dashboard')}
-                        >
-                          <LayoutDashboard size={16} />
-                          <span>Dashboard</span>
-                        </button>
-
-                        <button
-                          className={styles.dropdownItem}
                           onClick={() => handleAccountNavigation('/product-catalog')}
                         >
                           <BookImage size={16} />
                           <span>Catalog</span>
+                        </button>
+
+                        <button
+                          className={styles.dropdownItem}
+                          onClick={() => handleAccountNavigation('/admin/dashboard')}
+                        >
+                          <LayoutDashboard size={16} />
+                          <span>Dashboard</span>
                         </button>
 
                         <button

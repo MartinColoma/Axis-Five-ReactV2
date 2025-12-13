@@ -242,7 +242,7 @@ useEffect(() => {
       <main className={styles.main}>
         <div className={styles.container}>
           <div className={styles.headerRowTop}>
-            <h1 className={styles.title}>All RFQs</h1>
+            <h1 className={styles.title}>All Request For Quote</h1>
 
             <div className={styles.filtersRow}>
               <input

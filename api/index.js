@@ -66,6 +66,7 @@ const prod_rfq = require('./routes/prod-catalog/product-rfq')
 //user routes
 const user_profile = require('./routes/user/user')
 //admin
+const adminAnalytics = require('./routes/admin/analytics/analytics')
 const adminUser = require('./routes/admin/users/users')
 const adminProduct = require('./routes/admin/products/products')
 const adminRFQ = require('./routes/admin/rfqs/rfqs')
@@ -106,6 +107,8 @@ console.log("✅ Product RFQ route mounted");
 user_profile(app);
 console.log("✅ User route mounted");
 // 🔹 Admin Routes
+adminAnalytics(app);
+console.log("✅ Admin Analytics route mounted");
 adminUser(app);
 console.log("✅ Admin User route mounted");
 adminProduct(app);

@@ -61,7 +61,7 @@ const AdminHome = () => {
 
       <section className={styles.sectionPadding}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Administrator Dashboard</h2>
+          <h2 className={styles.sectionTitle}>Store Dashboard</h2>
 
           <div className={styles.quickActionsPanel}>
             <div className={styles.tabHeader}>
